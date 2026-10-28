@@ -41,8 +41,12 @@ func NewObject(kv ...any) *Object {
 	return o
 }
 
-// Set assigns a property; a new key is appended, an existing key keeps its position.
+// Set assigns a property; a new key is appended, an existing key keeps its position. A nil *Object is stored
+// as null.
 func (o *Object) Set(key string, value any) {
+	if v, ok := value.(*Object); ok && v == nil {
+		value = nil
+	}
 	if o.vals == nil {
 		o.vals = map[string]any{}
 	}

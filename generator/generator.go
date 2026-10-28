@@ -90,7 +90,10 @@ func newHandlers() *Handlers {
 	g := &Generator{h: h}
 	h.Node = func(node any) {
 		n, _ := node.(*js.Object)
-		typ, _ := n.Lookup("type")
+		typ, ok := n.Lookup("type")
+		if !ok {
+			typ = js.Undefined
+		}
 		name, isString := typ.(string)
 		fn := nodeGenerators[name]
 		if n == nil || !isString || fn == nil {
