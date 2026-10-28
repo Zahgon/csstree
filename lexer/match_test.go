@@ -5,7 +5,7 @@ import (
 
 	"github.com/csstree/csstree/data"
 	"github.com/csstree/csstree/internal/fixtureset"
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 )
 
 // fixtureLexer builds the registry the original's definition-syntax-match tests use: the default types and

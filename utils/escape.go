@@ -3,7 +3,7 @@ package utils
 import (
 	"strconv"
 
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 	"github.com/csstree/csstree/tokenizer"
 )
 

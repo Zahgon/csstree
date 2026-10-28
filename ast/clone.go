@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 )
 
 // ErrCloneNull is returned when Clone meets null or undefined where it expects an object, the original's

@@ -139,7 +139,9 @@ func writeValue(b *strings.Builder, v any, indent, prefix string) {
 	case []float64:
 		writeArray(b, len(x), func(i int) any { return x[i] }, indent, prefix)
 	default:
-		panic(fmt.Sprintf("js: cannot stringify %T", v))
+		// Go values with no JavaScript counterpart are written as null, as JSON.stringify writes values it cannot
+		// represent inside arrays.
+		b.WriteString("null")
 	}
 }
 

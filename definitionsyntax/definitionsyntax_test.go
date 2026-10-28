@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/csstree/csstree/internal/fixtureset"
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 )
 
 func grammars(t *testing.T) []string {

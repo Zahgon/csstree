@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 )
 
 const streamCSS = ".test\n{\n  prop: url(foo/bar.jpg) url( a\\(\\33 \\).\\ \\\"\\'test ) calc(1 + 1) \\x \\aa ;\n}<!--<-->\\\n"

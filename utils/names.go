@@ -5,7 +5,7 @@ package utils
 import (
 	"sync"
 
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 )
 
 // Descriptor describes a keyword or a property name: its lowercased name, the name without a vendor prefix, the

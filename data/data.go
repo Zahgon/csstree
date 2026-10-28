@@ -6,7 +6,7 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 )
 
 //go:embed patch.json mdn/at-rules.json mdn/properties.json mdn/syntaxes.json

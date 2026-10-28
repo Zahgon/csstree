@@ -6,7 +6,7 @@ import (
 	csstree "github.com/csstree/csstree"
 	"github.com/csstree/csstree/ast"
 	"github.com/csstree/csstree/definitionsyntax"
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 	"github.com/csstree/csstree/lexer"
 	"github.com/csstree/csstree/syntax"
 	"github.com/csstree/csstree/walker"

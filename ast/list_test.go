@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 )
 
 func values(l *List) string {

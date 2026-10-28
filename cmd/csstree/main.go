@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 )
 
 // usageError is a bad command line: unknown command or flag, missing or invalid argument, or unreadable input.

@@ -3,7 +3,7 @@ package definitionsyntax
 import (
 	"errors"
 
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 )
 
 // GenerateOptions configure Generate: ForceBraces writes every group in brackets, Compact leaves out optional

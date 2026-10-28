@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 	t "github.com/csstree/csstree/tokenizer"
 )
 
@@ -418,7 +418,9 @@ func internalMatch(tokens []*token, state *gnode, lexer *Lexer) *matchResult {
 	}
 	switch reason {
 	case "":
-		fmt.Fprintf(Warnings, "[csstree-match] BREAK after %d iterations\n", iterationLimit)
+		if _, err := fmt.Fprintf(Warnings, "[csstree-match] BREAK after %d iterations\n", iterationLimit); err != nil {
+			panic(&matchError{fmt.Errorf("writing the iteration limit warning: %w", err)})
+		}
 		reason = exitReasonIterationLimit
 		m.matchStack = nil
 	case exitReasonMatch:

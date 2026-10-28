@@ -1,6 +1,6 @@
 package tokenizer
 
-import "github.com/csstree/csstree/internal/js"
+import "github.com/csstree/csstree/js"
 
 const (
 	offsetMask      = 0x00FFFFFF

@@ -1,6 +1,6 @@
 package tokenizer
 
-import "github.com/csstree/csstree/internal/js"
+import "github.com/csstree/csstree/js"
 
 // GetBlockTokenPairIndex returns the index of the token that closes (or opens) the block of a block token, or -1.
 func (ts *TokenStream) GetBlockTokenPairIndex(tokenIndex int) int {

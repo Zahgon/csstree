@@ -5,7 +5,7 @@ package definitionsyntax
 import (
 	"strings"
 
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 )
 
 // SyntaxError is a grammar parse error with the input and the offset (in UTF-16 code units) where it occurred.

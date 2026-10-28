@@ -10,7 +10,7 @@ import (
 	"github.com/csstree/csstree/ast"
 	"github.com/csstree/csstree/convertor"
 	"github.com/csstree/csstree/generator"
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 	"github.com/csstree/csstree/lexer"
 	"github.com/csstree/csstree/syntax"
 	"github.com/csstree/csstree/tokenizer"

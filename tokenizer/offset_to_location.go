@@ -1,6 +1,6 @@
 package tokenizer
 
-import "github.com/csstree/csstree/internal/js"
+import "github.com/csstree/csstree/js"
 
 // OffsetToLocation maps source offsets to lines and columns. Lines and columns are stored as unsigned 32-bit
 // integers, so start values outside that range wrap (a start line of -1 reads 4294967295); offsets are plain

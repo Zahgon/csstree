@@ -3,7 +3,7 @@ package lexer
 import (
 	"github.com/csstree/csstree/data"
 	"github.com/csstree/csstree/definitionsyntax"
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 )
 
 func (l *Lexer) dumpSyntax(d *descriptor, compact, syntaxAsAST bool) any {

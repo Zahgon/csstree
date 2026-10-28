@@ -2,6 +2,9 @@
 // with JavaScript property order, JSON.stringify and JSON.parse, Number to string conversion, string to Number
 // conversion, toLowerCase with full Unicode case mapping, and strings measured in UTF-16 code units.
 //
+// CSSTree's AST nodes and the values the command prints are *Object values of this package, so a tree serialises,
+// round-trips through JSON and orders its keys exactly as the original's plain objects do.
+//
 // Strings are Go strings in WTF-8: UTF-8 that may also carry lone surrogate code points (encoded like any other
 // three-byte sequence), so every JavaScript string, including one cut through a surrogate pair, has a Go form.
 package js

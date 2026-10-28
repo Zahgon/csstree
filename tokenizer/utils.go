@@ -3,7 +3,7 @@ package tokenizer
 import (
 	"math"
 
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 )
 
 // at is charCodeAt on UTF-16 code units: -1 (NaN) outside the source.

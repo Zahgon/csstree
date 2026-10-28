@@ -5,7 +5,7 @@ package lexer
 
 import (
 	"github.com/csstree/csstree/definitionsyntax"
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 )
 
 // gnode is a node of a match graph, and also a matcher state: graph nodes keep their identity (the graph has

@@ -2,7 +2,7 @@ package lexer
 
 import (
 	"github.com/csstree/csstree/ast"
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 	"github.com/csstree/csstree/walker"
 )
 

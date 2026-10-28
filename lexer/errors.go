@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/csstree/csstree/definitionsyntax"
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 )
 
 // Error is a plain JavaScript error the lexer returns: its name is "Error" or "SyntaxError".

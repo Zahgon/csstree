@@ -1,6 +1,6 @@
 package tokenizer
 
-import "github.com/csstree/csstree/internal/js"
+import "github.com/csstree/csstree/js"
 
 // Tokenize splits source into tokens and calls onToken with each token's type and its start and end offsets in
 // UTF-16 code units. A leading byte order mark is skipped.

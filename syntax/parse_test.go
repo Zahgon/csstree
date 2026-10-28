@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/csstree/csstree/internal/fixtureset"
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 )
 
 func loadAstFixtures(t *testing.T) []fixtureset.Test {

@@ -5,7 +5,7 @@ package tokenizer
 import (
 	"slices"
 
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 )
 
 // Token types (CSS Syntax Module Level 3, https://www.w3.org/TR/css-syntax-3/).

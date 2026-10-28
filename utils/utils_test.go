@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 )
 
 // TestDecodeEncode runs the original's decode/encode tables (testdata/decode-encode.json holds

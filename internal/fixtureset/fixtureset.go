@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 )
 
 // Test is one fixture test: its name, its key in the file, the folder (scope) it was found in and its JSON

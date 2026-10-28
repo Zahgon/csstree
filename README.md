@@ -55,7 +55,7 @@ The module uses the Go standard library only.
 | `.../utils` | `Keyword`, `Property`, `VendorPrefix`, `IsCustomProperty`, ident/string/url encoding |
 | `.../data` | the definitions the default lexer uses |
 
-AST nodes are `*js.Object` values (an ordered string-keyed object from the module's `internal/js` package) holding
+AST nodes are `*js.Object` values (package `github.com/csstree/csstree/js`: an ordered string-keyed object) holding
 the node's properties in the same order and with the same values CSSTree produces, so ASTs serialise to the same
 JSON and can be read back from it.
 

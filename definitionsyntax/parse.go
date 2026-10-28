@@ -3,7 +3,7 @@ package definitionsyntax
 import (
 	"sort"
 
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 )
 
 const infinity = 8734 // ∞

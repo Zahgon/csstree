@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/csstree/csstree/ast"
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 )
 
 // Action is what a visitor asks the walker to do next.

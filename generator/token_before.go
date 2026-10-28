@@ -1,7 +1,7 @@
 package generator
 
 import (
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 	t "github.com/csstree/csstree/tokenizer"
 )
 

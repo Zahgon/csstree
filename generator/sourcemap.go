@@ -5,7 +5,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/csstree/csstree/internal/js"
+	"github.com/csstree/csstree/js"
 )
 
 // mapping is one Source Map v3 mapping; a generated-only mapping has hasSource false.
