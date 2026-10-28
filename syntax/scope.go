@@ -100,11 +100,11 @@ func defaultGetNode(p *Parser, ctx *SequenceContext) *js.Object {
 		return p.Number()
 	case tokenizer.Function:
 		if p.CmpStr(p.TokenStart, p.TokenEnd, "url(") {
-			return p.Url()
+			return p.URL()
 		}
 		return p.Function(ctx.Recognizer)
 	case tokenizer.URL:
-		return p.Url()
+		return p.URL()
 	case tokenizer.Ident:
 		if p.CmpChar(p.TokenStart, 'u') && p.CmpChar(p.TokenStart+1, '+') {
 			return p.UnicodeRange()

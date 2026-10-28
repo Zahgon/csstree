@@ -155,9 +155,9 @@ func ConsumeNumber(src []uint16, offset int) int {
 	return offset
 }
 
-// ConsumeBadUrlRemnants consumes the rest of a bad url up to and including ")" and returns the offset after it
+// ConsumeBadURLRemnants consumes the rest of a bad url up to and including ")" and returns the offset after it
 // (§ 4.3.14. Consume the remnants of a bad url).
-func ConsumeBadUrlRemnants(src []uint16, offset int) int {
+func ConsumeBadURLRemnants(src []uint16, offset int) int {
 	for ; offset < len(src); offset++ {
 		code := at(src, offset)
 		if code == 0x0029 {

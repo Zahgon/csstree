@@ -101,7 +101,7 @@ func importPrelude(p *Parser) *ast.List {
 	case t.String:
 		children.Push(p.String())
 	case t.URL, t.Function:
-		children.Push(p.Url())
+		children.Push(p.URL())
 	default:
 		p.Error("String or url() is expected")
 	}

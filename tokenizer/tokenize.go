@@ -111,11 +111,11 @@ func (t *tokenizerState) consumeURLToken() {
 				}
 				return
 			}
-			t.offset = ConsumeBadUrlRemnants(t.src, t.offset)
+			t.offset = ConsumeBadURLRemnants(t.src, t.offset)
 			t.typ = BadURL
 			return
 		case 0x0022, 0x0027, 0x0028, NonPrintableCategory:
-			t.offset = ConsumeBadUrlRemnants(t.src, t.offset)
+			t.offset = ConsumeBadURLRemnants(t.src, t.offset)
 			t.typ = BadURL
 			return
 		case 0x005C:
@@ -123,7 +123,7 @@ func (t *tokenizerState) consumeURLToken() {
 				t.offset = ConsumeEscaped(t.src, t.offset) - 1
 				break
 			}
-			t.offset = ConsumeBadUrlRemnants(t.src, t.offset)
+			t.offset = ConsumeBadURLRemnants(t.src, t.offset)
 			t.typ = BadURL
 			return
 		}

@@ -38,8 +38,8 @@ func (p *Parser) String() *js.Object {
 	return js.NewObject("type", "String", "loc", loc, "value", utils.StringDecode(p.Consume(t.String)))
 }
 
-// Url parses <url-token> or url( <string> ); the value is decoded.
-func (p *Parser) Url() *js.Object {
+// URL parses <url-token> or url( <string> ); the value is decoded.
+func (p *Parser) URL() *js.Object {
 	start := p.TokenStart
 	var value any = js.Undefined
 	switch p.TokenType {
