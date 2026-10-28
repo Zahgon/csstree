@@ -6,7 +6,7 @@ import (
 	t "github.com/csstree/csstree/tokenizer"
 )
 
-func (p *Parser) rangeTerm() *js.Object {
+func (p *parser) rangeTerm() *js.Object {
 	p.SkipSC()
 	switch p.TokenType {
 	case t.Number:
@@ -20,7 +20,7 @@ func (p *Parser) rangeTerm() *js.Object {
 		return p.Identifier()
 	case t.Function:
 		return p.ParseWithFallback(func() *js.Object {
-			res := p.Function(ValueScope)
+			res := p.Function(valueScope)
 			p.SkipSC()
 			if p.IsDelim('/', 0) {
 				p.Error("")
@@ -32,7 +32,7 @@ func (p *Parser) rangeTerm() *js.Object {
 	return nil
 }
 
-func (p *Parser) rangeComparison(expectColon bool) string {
+func (p *parser) rangeComparison(expectColon bool) string {
 	p.SkipSC()
 	if p.IsDelim('<', 0) || p.IsDelim('>', 0) {
 		value := js.FromUTF16(p.Src[p.TokenStart : p.TokenStart+1])
@@ -54,7 +54,7 @@ func (p *Parser) rangeComparison(expectColon bool) string {
 }
 
 // FeatureRange parses a range feature such as (width >= 600px) or (400px < width < 700px).
-func (p *Parser) FeatureRange(kind string) *js.Object {
+func (p *parser) FeatureRange(kind string) *js.Object {
 	start := p.TokenStart
 	p.SkipSC()
 	p.Eat(t.LeftParenthesis)
@@ -75,7 +75,7 @@ func (p *Parser) FeatureRange(kind string) *js.Object {
 
 // featureParser returns the parser of a feature function of a condition kind: selector() for supports and
 // style() for container; "constructor" resolves to the Object constructor of the original's plain object.
-func (p *Parser) featureParser(kind, name string) func() *js.Object {
+func (p *parser) featureParser(kind, name string) func() *js.Object {
 	switch {
 	case kind == "supports" && name == "selector":
 		return p.Selector
@@ -89,7 +89,7 @@ func (p *Parser) featureParser(kind, name string) func() *js.Object {
 }
 
 // FeatureFunction parses a feature function such as selector( ... ) in @supports or style( ... ) in @container.
-func (p *Parser) FeatureFunction(kind string) *js.Object {
+func (p *parser) FeatureFunction(kind string) *js.Object {
 	start := p.TokenStart
 	functionName := p.ConsumeFunctionName()
 	valueParser := p.featureParser(kind, js.ToLowerCase(functionName))
@@ -110,7 +110,7 @@ func (p *Parser) FeatureFunction(kind string) *js.Object {
 }
 
 // GeneralEnclosed parses "( any )" or "name( any )" that is not a known condition form.
-func (p *Parser) GeneralEnclosed(kind string) *js.Object {
+func (p *parser) GeneralEnclosed(kind string) *js.Object {
 	start := p.TokenStart
 	var functionName any
 	if p.TokenType == t.Function {
@@ -121,7 +121,7 @@ func (p *Parser) GeneralEnclosed(kind string) *js.Object {
 	var children *ast.List
 	p.ParseWithFallback(func() *js.Object {
 		startValueToken := p.TokenIndex
-		children = p.ReadSequence(ValueScope)
+		children = p.ReadSequence(valueScope)
 		if !p.EOF && !p.IsBalanceEdge(startValueToken) {
 			p.Error("")
 		}
@@ -138,7 +138,7 @@ func (p *Parser) GeneralEnclosed(kind string) *js.Object {
 }
 
 // SupportsDeclaration parses "( declaration )".
-func (p *Parser) SupportsDeclaration() *js.Object {
+func (p *parser) SupportsDeclaration() *js.Object {
 	start := p.TokenStart
 	p.Eat(t.LeftParenthesis)
 	p.SkipSC()
@@ -149,20 +149,20 @@ func (p *Parser) SupportsDeclaration() *js.Object {
 	return js.NewObject("type", "SupportsDeclaration", "loc", p.GetLocation(start, p.TokenStart), "declaration", declaration)
 }
 
-func (p *Parser) ratioTerm() *js.Object {
+func (p *parser) ratioTerm() *js.Object {
 	p.SkipSC()
 	switch p.TokenType {
 	case t.Number:
 		return p.Number()
 	case t.Function:
-		return p.Function(ValueScope)
+		return p.Function(valueScope)
 	}
 	p.Error("Number of function is expected")
 	return nil
 }
 
 // Ratio parses "number [/ number]" where either side may be a function.
-func (p *Parser) Ratio() *js.Object {
+func (p *parser) Ratio() *js.Object {
 	start := p.TokenStart
 	left := p.ratioTerm()
 	var right any
@@ -175,7 +175,7 @@ func (p *Parser) Ratio() *js.Object {
 }
 
 // Layer parses a dotted layer name.
-func (p *Parser) Layer() *js.Object {
+func (p *parser) Layer() *js.Object {
 	tokenStart := p.TokenStart
 	name := p.Consume(t.Ident)
 	for p.IsDelim('.', 0) {
@@ -186,7 +186,7 @@ func (p *Parser) Layer() *js.Object {
 }
 
 // LayerList parses comma-separated layer names.
-func (p *Parser) LayerList() *js.Object {
+func (p *parser) LayerList() *js.Object {
 	children := p.CreateList()
 	p.SkipSC()
 	for !p.EOF {
@@ -202,7 +202,7 @@ func (p *Parser) LayerList() *js.Object {
 }
 
 // Scope parses the @scope prelude "(root) to (limit)".
-func (p *Parser) Scope() *js.Object {
+func (p *parser) Scope() *js.Object {
 	var root, limit any
 	p.SkipSC()
 	startOffset := p.TokenStart

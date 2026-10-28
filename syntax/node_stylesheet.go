@@ -8,7 +8,7 @@ import (
 )
 
 // StyleSheet parses a stylesheet: rules, at-rules, CDO, CDC and top-level /*! comments.
-func (p *Parser) StyleSheet() *js.Object {
+func (p *parser) StyleSheet() *js.Object {
 	start := p.TokenStart
 	children := p.CreateList()
 	consumeRaw := func() *js.Object { return p.Raw(nil, false) }
@@ -39,9 +39,9 @@ func (p *Parser) StyleSheet() *js.Object {
 }
 
 // Rule parses a qualified rule: a selector list prelude and a declaration block.
-func (p *Parser) Rule() *js.Object {
+func (p *parser) Rule() *js.Object {
 	startOffset := p.TokenStart
-	consumeRaw := func() *js.Object { return p.Raw(ConsumeUntilLeftCurlyBracket, true) }
+	consumeRaw := func() *js.Object { return p.Raw(consumeUntilLeftCurlyBracket, true) }
 	var prelude *js.Object
 	if p.ParseRulePrelude {
 		prelude = p.ParseWithFallback(func() *js.Object {
@@ -59,10 +59,10 @@ func (p *Parser) Rule() *js.Object {
 }
 
 // Block parses a { } block: declarations (and nested rules starting with &) for a style block, rules otherwise.
-func (p *Parser) Block(isStyleBlock bool) *js.Object {
+func (p *parser) Block(isStyleBlock bool) *js.Object {
 	consumeRaw := func() *js.Object { return p.Raw(nil, true) }
 	consumeRule := func() *js.Object { return p.ParseWithFallback(p.Rule, consumeRaw) }
-	consumeRawDeclaration := func() *js.Object { return p.Raw(ConsumeUntilSemicolonIncluded, true) }
+	consumeRawDeclaration := func() *js.Object { return p.Raw(consumeUntilSemicolonIncluded, true) }
 	consumeDeclaration := func() *js.Object {
 		if p.TokenType == t.Semicolon {
 			return consumeRawDeclaration()
@@ -104,9 +104,9 @@ scan:
 }
 
 // DeclarationList parses declarations, at-rules and nested rules without surrounding braces.
-func (p *Parser) DeclarationList() *js.Object {
+func (p *parser) DeclarationList() *js.Object {
 	children := p.CreateList()
-	consumeRaw := func() *js.Object { return p.Raw(ConsumeUntilSemicolonIncluded, true) }
+	consumeRaw := func() *js.Object { return p.Raw(consumeUntilSemicolonIncluded, true) }
 	for !p.EOF {
 		switch p.TokenType {
 		case t.WhiteSpace, t.Comment, t.Semicolon:
@@ -126,10 +126,10 @@ func (p *Parser) DeclarationList() *js.Object {
 
 // Raw consumes tokens until consumeUntil stops (nil: the end of the enclosing block) and returns them as text;
 // excludeWhiteSpace leaves trailing white space out.
-func (p *Parser) Raw(consumeUntil func(int) int, excludeWhiteSpace bool) *js.Object {
+func (p *parser) Raw(consumeUntil func(int) int, excludeWhiteSpace bool) *js.Object {
 	startOffset := p.GetTokenStart(p.TokenIndex)
 	if consumeUntil == nil {
-		consumeUntil = ConsumeUntilBalanceEnd
+		consumeUntil = consumeUntilBalanceEnd
 	}
 	p.SkipUntilBalanced(p.TokenIndex, consumeUntil)
 	endOffset := p.TokenStart
@@ -140,7 +140,7 @@ func (p *Parser) Raw(consumeUntil func(int) int, excludeWhiteSpace bool) *js.Obj
 		"value", p.Substring(startOffset, endOffset))
 }
 
-func (p *Parser) offsetExcludeWS() int {
+func (p *parser) offsetExcludeWS() int {
 	if p.TokenIndex > 0 && p.LookupType(-1) == t.WhiteSpace {
 		if p.TokenIndex > 1 {
 			return p.GetTokenStart(p.TokenIndex - 1)
@@ -151,7 +151,7 @@ func (p *Parser) offsetExcludeWS() int {
 }
 
 // Comment parses a comment token.
-func (p *Parser) Comment() *js.Object {
+func (p *parser) Comment() *js.Object {
 	start, end := p.TokenStart, p.TokenEnd
 	p.Eat(t.Comment)
 	if end-start+2 >= 2 && p.CharCodeAt(end-2) == '*' && p.CharCodeAt(end-1) == '/' {
@@ -164,33 +164,33 @@ func (p *Parser) Comment() *js.Object {
 var spaceNode = js.NewObject("type", "WhiteSpace", "loc", nil, "value", " ")
 
 // WhiteSpace parses white space as the shared single-space node.
-func (p *Parser) WhiteSpace() *js.Object {
+func (p *parser) WhiteSpace() *js.Object {
 	p.Eat(t.WhiteSpace)
 	return spaceNode
 }
 
 // CDO parses "<!--".
-func (p *Parser) CDO() *js.Object {
+func (p *parser) CDO() *js.Object {
 	start := p.TokenStart
 	p.Eat(t.CDO)
 	return js.NewObject("type", "CDO", "loc", p.GetLocation(start, p.TokenStart))
 }
 
 // CDC parses "-->".
-func (p *Parser) CDC() *js.Object {
+func (p *parser) CDC() *js.Object {
 	start := p.TokenStart
 	p.Eat(t.CDC)
 	return js.NewObject("type", "CDC", "loc", p.GetLocation(start, p.TokenStart))
 }
 
 // Value parses a declaration value with the value scope.
-func (p *Parser) Value() *js.Object {
+func (p *parser) Value() *js.Object {
 	start := p.TokenStart
-	children := p.ReadSequence(ValueScope)
+	children := p.ReadSequence(valueScope)
 	return js.NewObject("type", "Value", "loc", p.GetLocation(start, p.TokenStart), "children", children)
 }
 
-func appendSpaceIfEmpty(p *Parser, value *js.Object, fromToken int) {
+func appendSpaceIfEmpty(p *parser, value *js.Object, fromToken int) {
 	list, ok := value.Get("children").(*ast.List)
 	if value.Str("type") != "Value" || !ok || !list.IsEmpty() {
 		return
@@ -204,16 +204,16 @@ func appendSpaceIfEmpty(p *Parser, value *js.Object, fromToken int) {
 }
 
 // Declaration parses "property: value !important", with property hacks and custom properties.
-func (p *Parser) Declaration() *js.Object {
+func (p *parser) Declaration() *js.Object {
 	start := p.TokenStart
 	startToken := p.TokenIndex
 	property := p.readProperty()
 	customProperty := utils.IsCustomProperty(property, 0)
 	parseValue := p.ParseValue
-	consumeRaw := func() *js.Object { return p.Raw(ConsumeUntilExclamationMarkOrSemicolon, true) }
+	consumeRaw := func() *js.Object { return p.Raw(consumeUntilExclamationMarkOrSemicolon, true) }
 	if customProperty {
 		parseValue = p.ParseCustomProperty
-		consumeRaw = func() *js.Object { return p.Raw(ConsumeUntilExclamationMarkOrSemicolon, false) }
+		consumeRaw = func() *js.Object { return p.Raw(consumeUntilExclamationMarkOrSemicolon, false) }
 	}
 	var important any = false
 	p.SkipSC()
@@ -250,7 +250,7 @@ func (p *Parser) Declaration() *js.Object {
 		"property", property, "value", value)
 }
 
-func (p *Parser) readProperty() string {
+func (p *parser) readProperty() string {
 	start := p.TokenStart
 	if p.TokenType == t.Delim {
 		switch p.CharCodeAt(p.TokenStart) {
@@ -272,7 +272,7 @@ func (p *Parser) readProperty() string {
 }
 
 // important parses "! ws* ident" and returns true for "important", else the identifier's text.
-func (p *Parser) important() any {
+func (p *parser) important() any {
 	p.Eat(t.Delim)
 	p.SkipSC()
 	important := p.Consume(t.Ident)

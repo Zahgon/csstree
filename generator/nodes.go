@@ -15,9 +15,9 @@ func field(n *js.Object, key string) string {
 	return js.ToString(v)
 }
 
-func children(g *Generator, n *js.Object) { g.Children(n, nil) }
+func children(g *nodeWriter, n *js.Object) { g.Children(n, nil) }
 
-func semicolonAfterDeclaration(g *Generator) func(prev any) {
+func semicolonAfterDeclaration(g *nodeWriter) func(prev any) {
 	return func(prev any) {
 		if p, _ := prev.(*js.Object); p != nil && p.Str("type") == "Declaration" {
 			g.Token(t.Semicolon, ";")
@@ -26,39 +26,39 @@ func semicolonAfterDeclaration(g *Generator) func(prev any) {
 }
 
 func init() {
-	for name, fn := range map[string]func(g *Generator, n *js.Object){
+	for name, fn := range map[string]func(g *nodeWriter, n *js.Object){
 		"StyleSheet":      children,
 		"Value":           children,
 		"AtrulePrelude":   children,
-		"Rule":            func(g *Generator, n *js.Object) { g.Node(n.Get("prelude")); g.Node(n.Get("block")) },
+		"Rule":            func(g *nodeWriter, n *js.Object) { g.Node(n.Get("prelude")); g.Node(n.Get("block")) },
 		"Block":           generateBlock,
-		"DeclarationList": func(g *Generator, n *js.Object) { g.Children(n, semicolonAfterDeclaration(g)) },
-		"Raw":             func(g *Generator, n *js.Object) { g.Tokenize(field(n, "value")) },
-		"Comment":         func(g *Generator, n *js.Object) { g.Token(t.Comment, "/*"+field(n, "value")+"*/") },
-		"WhiteSpace":      func(g *Generator, n *js.Object) { g.Token(t.WhiteSpace, field(n, "value")) },
-		"CDO":             func(g *Generator, _ *js.Object) { g.Token(t.CDO, "<!--") },
-		"CDC":             func(g *Generator, _ *js.Object) { g.Token(t.CDC, "-->") },
+		"DeclarationList": func(g *nodeWriter, n *js.Object) { g.Children(n, semicolonAfterDeclaration(g)) },
+		"Raw":             func(g *nodeWriter, n *js.Object) { g.Tokenize(field(n, "value")) },
+		"Comment":         func(g *nodeWriter, n *js.Object) { g.Token(t.Comment, "/*"+field(n, "value")+"*/") },
+		"WhiteSpace":      func(g *nodeWriter, n *js.Object) { g.Token(t.WhiteSpace, field(n, "value")) },
+		"CDO":             func(g *nodeWriter, _ *js.Object) { g.Token(t.CDO, "<!--") },
+		"CDC":             func(g *nodeWriter, _ *js.Object) { g.Token(t.CDC, "-->") },
 		"Declaration":     generateDeclaration,
 		"Atrule":          generateAtrule,
-		"Identifier":      func(g *Generator, n *js.Object) { g.Token(t.Ident, field(n, "name")) },
-		"Number":          func(g *Generator, n *js.Object) { g.Token(t.Number, field(n, "value")) },
-		"Dimension":       func(g *Generator, n *js.Object) { g.Token(t.Dimension, field(n, "value")+field(n, "unit")) },
-		"Percentage":      func(g *Generator, n *js.Object) { g.Token(t.Percentage, field(n, "value")+"%") },
-		"String":          func(g *Generator, n *js.Object) { g.Token(t.String, utils.StringEncode(field(n, "value"), false)) },
-		"Url":             func(g *Generator, n *js.Object) { g.Token(t.URL, utils.URLEncode(field(n, "value"))) },
-		"Hash":            func(g *Generator, n *js.Object) { g.Token(t.Hash, "#"+field(n, "value")) },
-		"Operator":        func(g *Generator, n *js.Object) { g.Tokenize(field(n, "value")) },
-		"Parentheses": func(g *Generator, n *js.Object) {
+		"Identifier":      func(g *nodeWriter, n *js.Object) { g.Token(t.Ident, field(n, "name")) },
+		"Number":          func(g *nodeWriter, n *js.Object) { g.Token(t.Number, field(n, "value")) },
+		"Dimension":       func(g *nodeWriter, n *js.Object) { g.Token(t.Dimension, field(n, "value")+field(n, "unit")) },
+		"Percentage":      func(g *nodeWriter, n *js.Object) { g.Token(t.Percentage, field(n, "value")+"%") },
+		"String":          func(g *nodeWriter, n *js.Object) { g.Token(t.String, utils.StringEncode(field(n, "value"), false)) },
+		"Url":             func(g *nodeWriter, n *js.Object) { g.Token(t.URL, utils.URLEncode(field(n, "value"))) },
+		"Hash":            func(g *nodeWriter, n *js.Object) { g.Token(t.Hash, "#"+field(n, "value")) },
+		"Operator":        func(g *nodeWriter, n *js.Object) { g.Tokenize(field(n, "value")) },
+		"Parentheses": func(g *nodeWriter, n *js.Object) {
 			g.Token(t.LeftParenthesis, "(")
 			g.Children(n, nil)
 			g.Token(t.RightParenthesis, ")")
 		},
-		"Brackets": func(g *Generator, n *js.Object) {
+		"Brackets": func(g *nodeWriter, n *js.Object) {
 			g.Token(t.Delim, "[")
 			g.Children(n, nil)
 			g.Token(t.Delim, "]")
 		},
-		"Function": func(g *Generator, n *js.Object) {
+		"Function": func(g *nodeWriter, n *js.Object) {
 			g.Token(t.Function, field(n, "name")+"(")
 			g.Children(n, nil)
 			g.Token(t.RightParenthesis, ")")
@@ -68,13 +68,13 @@ func init() {
 	}
 }
 
-func generateBlock(g *Generator, n *js.Object) {
+func generateBlock(g *nodeWriter, n *js.Object) {
 	g.Token(t.LeftCurlyBracket, "{")
 	g.Children(n, semicolonAfterDeclaration(g))
 	g.Token(t.RightCurlyBracket, "}")
 }
 
-func generateDeclaration(g *Generator, n *js.Object) {
+func generateDeclaration(g *nodeWriter, n *js.Object) {
 	g.Token(t.Ident, field(n, "property"))
 	g.Token(t.Colon, ":")
 	g.Node(n.Get("value"))
@@ -88,7 +88,7 @@ func generateDeclaration(g *Generator, n *js.Object) {
 	}
 }
 
-func generateAtrule(g *Generator, n *js.Object) {
+func generateAtrule(g *nodeWriter, n *js.Object) {
 	g.Token(t.AtKeyword, "@"+field(n, "name"))
 	if prelude, ok := n.Lookup("prelude"); !ok || prelude != nil {
 		g.Node(prelude)

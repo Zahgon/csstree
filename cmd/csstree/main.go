@@ -94,7 +94,7 @@ func readInput(file string, present bool) (string, error) {
 		data, err = os.ReadFile(file)
 	}
 	if err != nil {
-		return "", usage("cannot read %s", file)
+		return "", usage("cannot read %s: %v", file, err)
 	}
 	return js.DecodeUTF8(data), nil
 }
@@ -142,21 +142,25 @@ func run(argv []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		var ue *usageError
 		if errors.As(err, &ue) {
-			fmt.Fprintf(stderr, "csstree: %s\n", ue.msg)
-			return 2
+			return fail(stderr, 2, "csstree: "+ue.msg+"\n")
 		}
-		if _, werr := io.WriteString(stderr, js.ToUTF8(js.Stringify(errorFields(err)))+"\n"); werr != nil {
-			return 1
-		}
-		return 1
+		return fail(stderr, 1, js.ToUTF8(js.Stringify(errorFields(err)))+"\n")
 	}
 	text, ok := result.(string)
 	if !ok {
 		text = js.Stringify(result) + "\n"
 	}
 	if _, err := io.WriteString(stdout, js.ToUTF8(text)); err != nil {
-		fmt.Fprintf(stderr, "csstree: %v\n", err)
-		return 1
+		return fail(stderr, 1, "csstree: writing the result: "+err.Error()+"\n")
 	}
 	return 0
+}
+
+// fail writes a failure report on standard error and returns the exit status; when standard error cannot be
+// written either, the exit status 1 is the only report left.
+func fail(stderr io.Writer, code int, text string) int {
+	if _, err := io.WriteString(stderr, text); err != nil {
+		return 1
+	}
+	return code
 }

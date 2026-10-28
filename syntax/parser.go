@@ -38,10 +38,10 @@ type ParseOptions struct {
 	OnToken func(typ, start, end int)
 }
 
-type contextFn func(p *Parser, opts *ParseOptions) *js.Object
+type contextFn func(p *parser, opts *ParseOptions) *js.Object
 
-// Parser is the parser state: the token stream plus the location map and the current options.
-type Parser struct {
+// parser is the parser state: the token stream plus the location map and the current options.
+type parser struct {
 	tokenizer.TokenStream
 	locationMap         *tokenizer.OffsetToLocation
 	filename            string
@@ -56,36 +56,36 @@ type Parser struct {
 }
 
 var defaultContexts = map[string]contextFn{
-	"default":    func(p *Parser, _ *ParseOptions) *js.Object { return p.StyleSheet() },
-	"stylesheet": func(p *Parser, _ *ParseOptions) *js.Object { return p.StyleSheet() },
-	"atrule":     func(p *Parser, _ *ParseOptions) *js.Object { return p.Atrule(false) },
-	"atrulePrelude": func(p *Parser, o *ParseOptions) *js.Object {
+	"default":    func(p *parser, _ *ParseOptions) *js.Object { return p.StyleSheet() },
+	"stylesheet": func(p *parser, _ *ParseOptions) *js.Object { return p.StyleSheet() },
+	"atrule":     func(p *parser, _ *ParseOptions) *js.Object { return p.Atrule(false) },
+	"atrulePrelude": func(p *parser, o *ParseOptions) *js.Object {
 		if o.Atrule != "" {
 			return p.AtrulePrelude(o.Atrule, true)
 		}
 		return p.AtrulePrelude("", false)
 	},
-	"mediaQueryList": func(p *Parser, _ *ParseOptions) *js.Object { return p.MediaQueryList() },
-	"mediaQuery":     func(p *Parser, _ *ParseOptions) *js.Object { return p.MediaQuery() },
-	"condition": func(p *Parser, o *ParseOptions) *js.Object {
+	"mediaQueryList": func(p *parser, _ *ParseOptions) *js.Object { return p.MediaQueryList() },
+	"mediaQuery":     func(p *parser, _ *ParseOptions) *js.Object { return p.MediaQuery() },
+	"condition": func(p *parser, o *ParseOptions) *js.Object {
 		if o.Kind == "" {
 			return p.Condition("media")
 		}
 		return p.Condition(o.Kind)
 	},
-	"rule":            func(p *Parser, _ *ParseOptions) *js.Object { return p.Rule() },
-	"selectorList":    func(p *Parser, _ *ParseOptions) *js.Object { return p.SelectorList() },
-	"selector":        func(p *Parser, _ *ParseOptions) *js.Object { return p.Selector() },
-	"block":           func(p *Parser, _ *ParseOptions) *js.Object { return p.Block(true) },
-	"declarationList": func(p *Parser, _ *ParseOptions) *js.Object { return p.DeclarationList() },
-	"declaration":     func(p *Parser, _ *ParseOptions) *js.Object { return p.Declaration() },
-	"value":           func(p *Parser, _ *ParseOptions) *js.Object { return p.Value() },
+	"rule":            func(p *parser, _ *ParseOptions) *js.Object { return p.Rule() },
+	"selectorList":    func(p *parser, _ *ParseOptions) *js.Object { return p.SelectorList() },
+	"selector":        func(p *parser, _ *ParseOptions) *js.Object { return p.Selector() },
+	"block":           func(p *parser, _ *ParseOptions) *js.Object { return p.Block(true) },
+	"declarationList": func(p *parser, _ *ParseOptions) *js.Object { return p.DeclarationList() },
+	"declaration":     func(p *parser, _ *ParseOptions) *js.Object { return p.Declaration() },
+	"value":           func(p *parser, _ *ParseOptions) *js.Object { return p.Value() },
 }
 
 var selectorContexts = map[string]contextFn{
-	"default":      func(p *Parser, _ *ParseOptions) *js.Object { return p.SelectorList() },
-	"selectorList": func(p *Parser, _ *ParseOptions) *js.Object { return p.SelectorList() },
-	"selector":     func(p *Parser, _ *ParseOptions) *js.Object { return p.Selector() },
+	"default":      func(p *parser, _ *ParseOptions) *js.Object { return p.SelectorList() },
+	"selectorList": func(p *parser, _ *ParseOptions) *js.Object { return p.SelectorList() },
+	"selector":     func(p *parser, _ *ParseOptions) *js.Object { return p.Selector() },
 }
 
 // Parse parses source in the context the options name and returns the AST.
@@ -114,7 +114,7 @@ func optBool(v *bool, dflt bool) bool {
 }
 
 func parseWith(contexts map[string]contextFn, source string, opts ParseOptions) (result *js.Object, err error) {
-	p := &Parser{locationMap: tokenizer.NewOffsetToLocation(), contexts: contexts}
+	p := &parser{locationMap: tokenizer.NewOffsetToLocation(), contexts: contexts}
 	p.SetSource(source, tokenizer.Tokenize)
 	p.locationMap.SetSource(source, optInt(opts.Offset, 0), optInt(opts.Line, 1), optInt(opts.Column, 1))
 	p.filename = opts.Filename
@@ -183,7 +183,7 @@ func isParseError(err error) bool {
 }
 
 // try runs consumer and returns the parse error it raised, if any.
-func (p *Parser) try(consumer func() *js.Object) (node *js.Object, err error) {
+func (p *parser) try(consumer func() *js.Object) (node *js.Object, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			perr, ok := r.(error)
@@ -198,7 +198,7 @@ func (p *Parser) try(consumer func() *js.Object) (node *js.Object, err error) {
 
 // ParseWithFallback runs consumer; on a parse error it rewinds to where consumer started, builds the fallback
 // node, reports the error with that node and returns it.
-func (p *Parser) ParseWithFallback(consumer, fallback func() *js.Object) *js.Object {
+func (p *parser) ParseWithFallback(consumer, fallback func() *js.Object) *js.Object {
 	startIndex := p.TokenIndex
 	node, err := p.try(consumer)
 	if err == nil {
@@ -218,17 +218,17 @@ func (p *Parser) ParseWithFallback(consumer, fallback func() *js.Object) *js.Obj
 }
 
 // CreateList returns an empty children list.
-func (p *Parser) CreateList() *ast.List {
+func (p *parser) CreateList() *ast.List {
 	return ast.NewList()
 }
 
 // CreateSingleNodeList returns a list holding one node.
-func (p *Parser) CreateSingleNodeList(node *js.Object) *ast.List {
+func (p *parser) CreateSingleNodeList(node *js.Object) *ast.List {
 	return ast.NewList().AppendData(node)
 }
 
 // LookupNonWSType returns the type of the first token from offset on that is not white space or a comment.
-func (p *Parser) LookupNonWSType(offset int) int {
+func (p *parser) LookupNonWSType(offset int) int {
 	for {
 		typ := p.LookupType(offset)
 		offset++
@@ -242,7 +242,7 @@ func (p *Parser) LookupNonWSType(offset int) int {
 }
 
 // CharCodeAt returns the source code unit at offset, or 0 outside the source.
-func (p *Parser) CharCodeAt(offset int) int {
+func (p *parser) CharCodeAt(offset int) int {
 	if offset >= 0 && offset < len(p.Src) {
 		return int(p.Src[offset])
 	}
@@ -250,31 +250,31 @@ func (p *Parser) CharCodeAt(offset int) int {
 }
 
 // CmpChar compares the code unit at offset with a lowercase reference code (ASCII case folding).
-func (p *Parser) CmpChar(offset, code int) bool {
+func (p *parser) CmpChar(offset, code int) bool {
 	return tokenizer.CmpChar(p.Src, offset, code)
 }
 
 // CmpStr compares source text with a lowercase reference string (ASCII case folding).
-func (p *Parser) CmpStr(start, end int, str string) bool {
+func (p *parser) CmpStr(start, end int, str string) bool {
 	return tokenizer.CmpStr(p.Src, start, end, str)
 }
 
 // Consume checks the current token's type, moves past it and returns its text.
-func (p *Parser) Consume(tokenType int) string {
+func (p *parser) Consume(tokenType int) string {
 	start := p.TokenStart
 	p.Eat(tokenType)
 	return p.SubstrToCursor(start)
 }
 
 // ConsumeFunctionName returns the name of the current function token and moves past it.
-func (p *Parser) ConsumeFunctionName() string {
+func (p *parser) ConsumeFunctionName() string {
 	name := p.Substring(p.TokenStart, p.TokenEnd-1)
 	p.Eat(tokenizer.Function)
 	return name
 }
 
 // ConsumeNumber returns the numeric part of the current token and moves past it.
-func (p *Parser) ConsumeNumber(tokenType int) string {
+func (p *parser) ConsumeNumber(tokenType int) string {
 	number := p.Substring(p.TokenStart, tokenizer.ConsumeNumber(p.Src, p.TokenStart))
 	p.Eat(tokenType)
 	return number
@@ -283,7 +283,7 @@ func (p *Parser) ConsumeNumber(tokenType int) string {
 var bracketChars = regexp.MustCompile(`[\[\](){}]`)
 
 // Eat moves past the current token when it has the expected type, else raises "<token> is expected".
-func (p *Parser) Eat(tokenType int) {
+func (p *parser) Eat(tokenType int) {
 	if p.TokenType != tokenType {
 		name := strings.ReplaceAll(strings.TrimSuffix(tokenizer.TokenNames[tokenType], "-token"), "-", " ")
 		if name != "" {
@@ -320,7 +320,7 @@ func (p *Parser) Eat(tokenType int) {
 }
 
 // EatIdent moves past an identifier token with the given (lowercase) name, else raises an error.
-func (p *Parser) EatIdent(name string) {
+func (p *parser) EatIdent(name string) {
 	if p.TokenType != tokenizer.Ident || !p.LookupValue(0, name) {
 		p.Error(`Identifier "` + name + `" is expected`)
 	}
@@ -328,7 +328,7 @@ func (p *Parser) EatIdent(name string) {
 }
 
 // EatDelim moves past the delim code, else raises an error.
-func (p *Parser) EatDelim(code int) {
+func (p *parser) EatDelim(code int) {
 	if !p.IsDelim(code, 0) {
 		p.Error(`Delim "` + js.FromCharCode(code) + `" is expected`)
 	}
@@ -336,7 +336,7 @@ func (p *Parser) EatDelim(code int) {
 }
 
 // GetLocation returns the loc of a source range, or nil when positions are off.
-func (p *Parser) GetLocation(start, end int) *js.Object {
+func (p *parser) GetLocation(start, end int) *js.Object {
 	if p.needPositions {
 		return p.locationMap.GetLocationRange(start, end, p.filename)
 	}
@@ -349,7 +349,7 @@ func locStartOffset(node *js.Object, point string) int {
 }
 
 // GetLocationFromList returns the loc spanning the nodes of a list, or nil when positions are off.
-func (p *Parser) GetLocationFromList(list *ast.List) *js.Object {
+func (p *parser) GetLocationFromList(list *ast.List) *js.Object {
 	if !p.needPositions {
 		return nil
 	}
@@ -364,7 +364,7 @@ func (p *Parser) GetLocationFromList(list *ast.List) *js.Object {
 }
 
 // Error raises a parse error at the current token (or at the end of the input).
-func (p *Parser) Error(message string) {
+func (p *parser) Error(message string) {
 	location := p.locationMap.GetLocation(p.TokenStart, "")
 	if p.EOF {
 		location = p.locationMap.GetLocation(tokenizer.FindWhiteSpaceStart(p.Src, len(p.Src)-1), "")
@@ -373,14 +373,14 @@ func (p *Parser) Error(message string) {
 }
 
 // ErrorAt raises a parse error at a source offset (or as Error when the offset is past the end).
-func (p *Parser) ErrorAt(message string, offset int) {
+func (p *parser) ErrorAt(message string, offset int) {
 	if offset < len(p.Src) {
 		p.raise(message, p.locationMap.GetLocation(offset, ""))
 	}
 	p.Error(message)
 }
 
-func (p *Parser) raise(message string, location *js.Object) {
+func (p *parser) raise(message string, location *js.Object) {
 	if message == "" {
 		message = "Unexpected input"
 	}

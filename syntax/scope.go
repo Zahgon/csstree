@@ -6,39 +6,39 @@ import (
 	"github.com/csstree/csstree/tokenizer"
 )
 
-// Recognizer drives ReadSequence: GetNode returns the next node or nil to stop, OnWhiteSpace runs when white
+// recognizer drives ReadSequence: GetNode returns the next node or nil to stop, OnWhiteSpace runs when white
 // space separated two nodes (next is nil at the end), and Functions parse the arguments of special functions.
-type Recognizer struct {
-	GetNode      func(p *Parser, ctx *SequenceContext) *js.Object
-	OnWhiteSpace func(p *Parser, next *js.Object, children *ast.List, ctx *SequenceContext)
-	Functions    map[string]func(p *Parser, r *Recognizer) *ast.List
+type recognizer struct {
+	GetNode      func(p *parser, ctx *sequenceContext) *js.Object
+	OnWhiteSpace func(p *parser, next *js.Object, children *ast.List, ctx *sequenceContext)
+	Functions    map[string]func(p *parser, r *recognizer) *ast.List
 }
 
-// SequenceContext is the state ReadSequence passes to its recognizer.
-type SequenceContext struct {
-	Recognizer *Recognizer
+// sequenceContext is the state ReadSequence passes to its recognizer.
+type sequenceContext struct {
+	recognizer *recognizer
 }
 
 // Stop conditions for SkipUntilBalanced and Raw: 0 continue, 1 stop before, 2 stop after the token.
 
-// ConsumeUntilBalanceEnd never stops before the end of the enclosing block.
-func ConsumeUntilBalanceEnd(int) int { return 0 }
+// consumeUntilBalanceEnd never stops before the end of the enclosing block.
+func consumeUntilBalanceEnd(int) int { return 0 }
 
-// ConsumeUntilLeftCurlyBracket stops before "{".
-func ConsumeUntilLeftCurlyBracket(code int) int { return stopIf(code == '{', 1) }
+// consumeUntilLeftCurlyBracket stops before "{".
+func consumeUntilLeftCurlyBracket(code int) int { return stopIf(code == '{', 1) }
 
-// ConsumeUntilLeftCurlyBracketOrSemicolon stops before "{" or ";".
-func ConsumeUntilLeftCurlyBracketOrSemicolon(code int) int {
+// consumeUntilLeftCurlyBracketOrSemicolon stops before "{" or ";".
+func consumeUntilLeftCurlyBracketOrSemicolon(code int) int {
 	return stopIf(code == '{' || code == ';', 1)
 }
 
-// ConsumeUntilExclamationMarkOrSemicolon stops before "!" or ";".
-func ConsumeUntilExclamationMarkOrSemicolon(code int) int {
+// consumeUntilExclamationMarkOrSemicolon stops before "!" or ";".
+func consumeUntilExclamationMarkOrSemicolon(code int) int {
 	return stopIf(code == '!' || code == ';', 1)
 }
 
-// ConsumeUntilSemicolonIncluded stops after ";".
-func ConsumeUntilSemicolonIncluded(code int) int { return stopIf(code == ';', 2) }
+// consumeUntilSemicolonIncluded stops after ";".
+func consumeUntilSemicolonIncluded(code int) int { return stopIf(code == ';', 2) }
 
 func stopIf(cond bool, v int) int {
 	if cond {
@@ -48,10 +48,10 @@ func stopIf(cond bool, v int) int {
 }
 
 // ReadSequence reads nodes with a recognizer until it returns nil, skipping comments and reporting white space.
-func (p *Parser) ReadSequence(recognizer *Recognizer) *ast.List {
+func (p *parser) ReadSequence(recognizer *recognizer) *ast.List {
 	children := p.CreateList()
 	space := false
-	ctx := &SequenceContext{Recognizer: recognizer}
+	ctx := &sequenceContext{recognizer: recognizer}
 	for !p.EOF {
 		switch p.TokenType {
 		case tokenizer.Comment:
@@ -80,16 +80,16 @@ func (p *Parser) ReadSequence(recognizer *Recognizer) *ast.List {
 	return children
 }
 
-func defaultGetNode(p *Parser, ctx *SequenceContext) *js.Object {
+func defaultGetNode(p *parser, ctx *sequenceContext) *js.Object {
 	switch p.TokenType {
 	case tokenizer.Hash:
 		return p.Hash()
 	case tokenizer.Comma:
 		return p.Operator()
 	case tokenizer.LeftParenthesis:
-		return p.Parentheses(ctx.Recognizer)
+		return p.Parentheses(ctx.recognizer)
 	case tokenizer.LeftSquareBracket:
-		return p.Brackets(ctx.Recognizer)
+		return p.Brackets(ctx.recognizer)
 	case tokenizer.String:
 		return p.String()
 	case tokenizer.Dimension:
@@ -102,7 +102,7 @@ func defaultGetNode(p *Parser, ctx *SequenceContext) *js.Object {
 		if p.CmpStr(p.TokenStart, p.TokenEnd, "url(") {
 			return p.URL()
 		}
-		return p.Function(ctx.Recognizer)
+		return p.Function(ctx.recognizer)
 	case tokenizer.URL:
 		return p.URL()
 	case tokenizer.Ident:
@@ -138,11 +138,11 @@ func isPlusMinusOperator(node *js.Object) bool {
 	return last == '-' || last == '+'
 }
 
-// ValueScope reads declaration values: white space around + and - operators is kept in the operator, and
+// valueScope reads declaration values: white space around + and - operators is kept in the operator, and
 // var() and expression() arguments are parsed specially.
-var ValueScope = &Recognizer{
+var valueScope = &recognizer{
 	GetNode: defaultGetNode,
-	OnWhiteSpace: func(_ *Parser, next *js.Object, children *ast.List, _ *SequenceContext) {
+	OnWhiteSpace: func(_ *parser, next *js.Object, children *ast.List, _ *sequenceContext) {
 		if isPlusMinusOperator(next) {
 			next.Set("value", " "+next.Str("value"))
 		}
@@ -152,14 +152,14 @@ var ValueScope = &Recognizer{
 	},
 }
 
-// AtrulePreludeScope reads generic at-rule preludes.
-var AtrulePreludeScope = &Recognizer{GetNode: defaultGetNode}
+// atrulePreludeScope reads generic at-rule preludes.
+var atrulePreludeScope = &recognizer{GetNode: defaultGetNode}
 
-// SelectorScope reads compound and complex selectors; white space between two non-combinators becomes a
+// selectorScope reads compound and complex selectors; white space between two non-combinators becomes a
 // descendant combinator.
-var SelectorScope = &Recognizer{
+var selectorScope = &recognizer{
 	GetNode: selectorGetNode,
-	OnWhiteSpace: func(_ *Parser, next *js.Object, children *ast.List, _ *SequenceContext) {
+	OnWhiteSpace: func(_ *parser, next *js.Object, children *ast.List, _ *sequenceContext) {
 		last, _ := children.Last().(*js.Object)
 		if last != nil && last.Str("type") != "Combinator" && next != nil && next.Str("type") != "Combinator" {
 			children.Push(js.NewObject("type", "Combinator", "loc", nil, "name", " "))
@@ -168,13 +168,13 @@ var SelectorScope = &Recognizer{
 }
 
 func init() {
-	ValueScope.Functions = map[string]func(p *Parser, r *Recognizer) *ast.List{
+	valueScope.Functions = map[string]func(p *parser, r *recognizer) *ast.List{
 		"expression": expressionFunction,
 		"var":        varFunction,
 	}
 }
 
-func selectorGetNode(p *Parser, _ *SequenceContext) *js.Object {
+func selectorGetNode(p *parser, _ *sequenceContext) *js.Object {
 	switch p.TokenType {
 	case tokenizer.LeftSquareBracket:
 		return p.AttributeSelector()
@@ -211,12 +211,12 @@ func selectorGetNode(p *Parser, _ *SequenceContext) *js.Object {
 }
 
 // expressionFunction parses the legacy IE expression( <any-value> ) as one Raw node.
-func expressionFunction(p *Parser, _ *Recognizer) *ast.List {
+func expressionFunction(p *parser, _ *recognizer) *ast.List {
 	return p.CreateSingleNodeList(p.Raw(nil, false))
 }
 
 // varFunction parses var( <ident> , <value>? ).
-func varFunction(p *Parser, _ *Recognizer) *ast.List {
+func varFunction(p *parser, _ *recognizer) *ast.List {
 	children := p.CreateList()
 	p.SkipSC()
 	children.Push(p.Identifier())
@@ -228,7 +228,7 @@ func varFunction(p *Parser, _ *Recognizer) *ast.List {
 		if p.ParseCustomProperty {
 			value = p.Value()
 		} else {
-			value = p.Raw(ConsumeUntilExclamationMarkOrSemicolon, false)
+			value = p.Raw(consumeUntilExclamationMarkOrSemicolon, false)
 		}
 		if list, ok := value.Get("children").(*ast.List); ok && value.Str("type") == "Value" && list.IsEmpty() {
 			for offset := startIndex - p.TokenIndex; offset <= 0; offset++ {

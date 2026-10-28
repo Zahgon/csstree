@@ -8,12 +8,12 @@ import (
 
 // atruleHandler parses the prelude and the block of a known at-rule; a nil function uses the generic parser.
 type atruleHandler struct {
-	prelude func(p *Parser) *ast.List
-	block   func(p *Parser, isDeclaration bool) *js.Object
+	prelude func(p *parser) *ast.List
+	block   func(p *parser, isDeclaration bool) *js.Object
 }
 
-func nestedBlock(p *Parser, nested bool) *js.Object { return p.Block(nested) }
-func styleBlock(p *Parser, _ bool) *js.Object       { return p.Block(true) }
+func nestedBlock(p *parser, nested bool) *js.Object { return p.Block(nested) }
+func styleBlock(p *parser, _ bool) *js.Object       { return p.Block(true) }
 
 var nonContainerNameKeywords = map[string]bool{"none": true, "and": true, "not": true, "or": true}
 
@@ -21,7 +21,7 @@ var atruleHandlers map[string]atruleHandler
 
 func init() {
 	atruleHandlers = map[string]atruleHandler{
-		"container": {prelude: func(p *Parser) *ast.List {
+		"container": {prelude: func(p *parser) *ast.List {
 			children := p.CreateList()
 			if p.TokenType == t.Ident {
 				name := p.Substring(p.TokenStart, p.TokenEnd)
@@ -34,25 +34,25 @@ func init() {
 		}, block: nestedBlock},
 		"font-face": {block: styleBlock},
 		"import":    {prelude: importPrelude},
-		"layer": {prelude: func(p *Parser) *ast.List { return p.CreateSingleNodeList(p.LayerList()) },
-			block: func(p *Parser, _ bool) *js.Object { return p.Block(false) }},
-		"media": {prelude: func(p *Parser) *ast.List { return p.CreateSingleNodeList(p.MediaQueryList()) },
+		"layer": {prelude: func(p *parser) *ast.List { return p.CreateSingleNodeList(p.LayerList()) },
+			block: func(p *parser, _ bool) *js.Object { return p.Block(false) }},
+		"media": {prelude: func(p *parser) *ast.List { return p.CreateSingleNodeList(p.MediaQueryList()) },
 			block: nestedBlock},
-		"nest": {prelude: func(p *Parser) *ast.List { return p.CreateSingleNodeList(p.SelectorList()) },
+		"nest": {prelude: func(p *parser) *ast.List { return p.CreateSingleNodeList(p.SelectorList()) },
 			block: styleBlock},
-		"page": {prelude: func(p *Parser) *ast.List { return p.CreateSingleNodeList(p.SelectorList()) },
+		"page": {prelude: func(p *parser) *ast.List { return p.CreateSingleNodeList(p.SelectorList()) },
 			block: styleBlock},
-		"scope": {prelude: func(p *Parser) *ast.List { return p.CreateSingleNodeList(p.Scope()) },
+		"scope": {prelude: func(p *parser) *ast.List { return p.CreateSingleNodeList(p.Scope()) },
 			block: nestedBlock},
 		"starting-style": {block: nestedBlock},
-		"supports": {prelude: func(p *Parser) *ast.List { return p.CreateSingleNodeList(p.Condition("supports")) },
+		"supports": {prelude: func(p *parser) *ast.List { return p.CreateSingleNodeList(p.Condition("supports")) },
 			block: nestedBlock},
 	}
 }
 
 // importFallback wraps an @import function argument parser: after it runs, successfully or not, white space is
 // skipped and anything but ")" is an error (which replaces the parser's own error, like a JavaScript finally).
-func (p *Parser) importFallback(parse func() *js.Object, fallback func() *js.Object) *js.Object {
+func (p *parser) importFallback(parse func() *js.Object, fallback func() *js.Object) *js.Object {
 	if fallback == nil {
 		fallback = func() *js.Object { return p.Raw(nil, true) }
 	}
@@ -77,14 +77,14 @@ func pushUnlessEmptyRaw(children *ast.List, node *js.Object) {
 	}
 }
 
-var importFunctions = &Recognizer{Functions: map[string]func(p *Parser, r *Recognizer) *ast.List{
-	"layer": func(p *Parser, _ *Recognizer) *ast.List {
+var importFunctions = &recognizer{Functions: map[string]func(p *parser, r *recognizer) *ast.List{
+	"layer": func(p *parser, _ *recognizer) *ast.List {
 		p.SkipSC()
 		children := p.CreateList()
 		pushUnlessEmptyRaw(children, p.importFallback(p.Layer, nil))
 		return children
 	},
-	"supports": func(p *Parser, _ *Recognizer) *ast.List {
+	"supports": func(p *parser, _ *recognizer) *ast.List {
 		p.SkipSC()
 		children := p.CreateList()
 		node := p.importFallback(p.Declaration, func() *js.Object {
@@ -95,7 +95,7 @@ var importFunctions = &Recognizer{Functions: map[string]func(p *Parser, r *Recog
 	},
 }}
 
-func importPrelude(p *Parser) *ast.List {
+func importPrelude(p *parser) *ast.List {
 	children := p.CreateList()
 	switch p.TokenType {
 	case t.String:
@@ -121,7 +121,7 @@ func importPrelude(p *Parser) *ast.List {
 	return children
 }
 
-func (p *Parser) isDeclarationBlockAtrule() bool {
+func (p *parser) isDeclarationBlockAtrule() bool {
 	for offset := 1; ; offset++ {
 		typ := p.LookupType(offset)
 		if typ == t.EOF {
@@ -137,10 +137,10 @@ func (p *Parser) isDeclarationBlockAtrule() bool {
 }
 
 // Atrule parses an at-rule; isDeclaration is set inside declaration blocks.
-func (p *Parser) Atrule(isDeclaration bool) *js.Object {
+func (p *parser) Atrule(isDeclaration bool) *js.Object {
 	start := p.TokenStart
 	var prelude, block *js.Object
-	consumeRaw := func() *js.Object { return p.Raw(ConsumeUntilLeftCurlyBracketOrSemicolon, true) }
+	consumeRaw := func() *js.Object { return p.Raw(consumeUntilLeftCurlyBracketOrSemicolon, true) }
 	p.Eat(t.AtKeyword)
 	name := p.SubstrToCursor(start + 1)
 	nameLowerCase := js.ToLowerCase(name)
@@ -168,7 +168,7 @@ func (p *Parser) Atrule(isDeclaration bool) *js.Object {
 }
 
 // AtrulePrelude parses the prelude of the named at-rule (hasName false: no name, the generic prelude).
-func (p *Parser) AtrulePrelude(name string, hasName bool) *js.Object {
+func (p *parser) AtrulePrelude(name string, hasName bool) *js.Object {
 	var children *ast.List
 	if hasName {
 		name = js.ToLowerCase(name)
@@ -177,7 +177,7 @@ func (p *Parser) AtrulePrelude(name string, hasName bool) *js.Object {
 	if h, ok := atruleHandlers[name]; ok && hasName && h.prelude != nil {
 		children = h.prelude(p)
 	} else {
-		children = p.ReadSequence(AtrulePreludeScope)
+		children = p.ReadSequence(atrulePreludeScope)
 	}
 	p.SkipSC()
 	if !p.EOF && p.TokenType != t.LeftCurlyBracket && p.TokenType != t.Semicolon {

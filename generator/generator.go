@@ -15,8 +15,8 @@ type Options struct {
 	SourceMap bool
 }
 
-// Handlers are the replaceable steps of generation; decorators wrap them.
-type Handlers struct {
+// handlerSet are the replaceable steps of generation; decorators wrap them.
+type handlerSet struct {
 	Node        func(node any)
 	TokenBefore TokenBefore
 	Token       func(typ int, value string, suppressAutoWhiteSpace bool)
@@ -24,23 +24,23 @@ type Handlers struct {
 	Result      func() any
 }
 
-// Generator is what a node type's generate function writes through.
-type Generator struct {
-	h *Handlers
+// nodeWriter is what a node type's generate function writes through.
+type nodeWriter struct {
+	h *handlerSet
 }
 
 // Node generates a node.
-func (g *Generator) Node(node any) {
+func (g *nodeWriter) Node(node any) {
 	g.h.Node(node)
 }
 
 // Token writes one token, preceded by automatic white space where the token-before table requires it.
-func (g *Generator) Token(typ int, value string) {
+func (g *nodeWriter) Token(typ int, value string) {
 	g.h.Token(typ, value, false)
 }
 
 // Tokenize writes raw text token by token; only its first token may get automatic white space before it.
-func (g *Generator) Tokenize(raw string) {
+func (g *nodeWriter) Tokenize(raw string) {
 	units := js.UTF16(raw)
 	tokenizer.TokenizeUnits(units, func(typ, start, end int) {
 		g.h.Token(typ, js.FromUTF16(units[start:end]), start != 0)
@@ -48,7 +48,7 @@ func (g *Generator) Tokenize(raw string) {
 }
 
 // Children generates the children of a node, calling delimiter (when not nil) between two of them.
-func (g *Generator) Children(node *js.Object, delimiter func(prev any)) {
+func (g *nodeWriter) Children(node *js.Object, delimiter func(prev any)) {
 	var prev any
 	first := true
 	each(node.Get("children"), func(child any) {
@@ -83,11 +83,11 @@ func (e *generateError) Error() string {
 	return e.msg
 }
 
-func newHandlers() *Handlers {
+func newHandlers() *handlerSet {
 	buffer := []byte{}
 	prevCode := 0
-	h := &Handlers{TokenBefore: Safe}
-	g := &Generator{h: h}
+	h := &handlerSet{TokenBefore: Safe}
+	g := &nodeWriter{h: h}
 	h.Node = func(node any) {
 		n, _ := node.(*js.Object)
 		typ, ok := n.Lookup("type")
@@ -120,7 +120,7 @@ func newHandlers() *Handlers {
 	return h
 }
 
-func run(node any, h *Handlers, mode string) (result any, err error) {
+func run(node any, h *handlerSet, mode string) (result any, err error) {
 	switch mode {
 	case "spec":
 		h.TokenBefore = Spec
@@ -183,4 +183,4 @@ func Tokens(node any) ([]Token, error) {
 	return tokens, nil
 }
 
-var nodeGenerators = map[string]func(g *Generator, node *js.Object){}
+var nodeGenerators = map[string]func(g *nodeWriter, node *js.Object){}

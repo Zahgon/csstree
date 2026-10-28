@@ -5,12 +5,12 @@ import (
 	t "github.com/csstree/csstree/tokenizer"
 )
 
-func commaSeparated(g *Generator, n *js.Object) {
+func commaSeparated(g *nodeWriter, n *js.Object) {
 	g.Children(n, func(any) { g.Token(t.Comma, ",") })
 }
 
-func generatePseudo(colons int) func(g *Generator, n *js.Object) {
-	return func(g *Generator, n *js.Object) {
+func generatePseudo(colons int) func(g *nodeWriter, n *js.Object) {
+	return func(g *nodeWriter, n *js.Object) {
 		for i := 0; i < colons; i++ {
 			g.Token(t.Colon, ":")
 		}
@@ -25,18 +25,18 @@ func generatePseudo(colons int) func(g *Generator, n *js.Object) {
 }
 
 func init() {
-	for name, fn := range map[string]func(g *Generator, n *js.Object){
-		"UnicodeRange":          func(g *Generator, n *js.Object) { g.Tokenize(field(n, "value")) },
+	for name, fn := range map[string]func(g *nodeWriter, n *js.Object){
+		"UnicodeRange":          func(g *nodeWriter, n *js.Object) { g.Tokenize(field(n, "value")) },
 		"SelectorList":          commaSeparated,
 		"MediaQueryList":        commaSeparated,
 		"LayerList":             commaSeparated,
 		"Selector":              children,
-		"TypeSelector":          func(g *Generator, n *js.Object) { g.Tokenize(field(n, "name")) },
-		"IdSelector":            func(g *Generator, n *js.Object) { g.Token(t.Delim, "#"+field(n, "name")) },
-		"ClassSelector":         func(g *Generator, n *js.Object) { g.Token(t.Delim, "."); g.Token(t.Ident, field(n, "name")) },
-		"Combinator":            func(g *Generator, n *js.Object) { g.Tokenize(field(n, "name")) },
-		"NestingSelector":       func(g *Generator, _ *js.Object) { g.Token(t.Delim, "&") },
-		"Layer":                 func(g *Generator, n *js.Object) { g.Tokenize(field(n, "name")) },
+		"TypeSelector":          func(g *nodeWriter, n *js.Object) { g.Tokenize(field(n, "name")) },
+		"IdSelector":            func(g *nodeWriter, n *js.Object) { g.Token(t.Delim, "#"+field(n, "name")) },
+		"ClassSelector":         func(g *nodeWriter, n *js.Object) { g.Token(t.Delim, "."); g.Token(t.Ident, field(n, "name")) },
+		"Combinator":            func(g *nodeWriter, n *js.Object) { g.Tokenize(field(n, "name")) },
+		"NestingSelector":       func(g *nodeWriter, _ *js.Object) { g.Token(t.Delim, "&") },
+		"Layer":                 func(g *nodeWriter, n *js.Object) { g.Tokenize(field(n, "name")) },
 		"AttributeSelector":     generateAttributeSelector,
 		"PseudoClassSelector":   generatePseudo(1),
 		"PseudoElementSelector": generatePseudo(2),
@@ -46,13 +46,13 @@ func init() {
 		"Condition":             generateCondition,
 		"Feature":               generateFeature,
 		"FeatureRange":          generateFeatureRange,
-		"FeatureFunction": func(g *Generator, n *js.Object) {
+		"FeatureFunction": func(g *nodeWriter, n *js.Object) {
 			g.Token(t.Function, field(n, "feature")+"(")
 			g.Node(n.Get("value"))
 			g.Token(t.RightParenthesis, ")")
 		},
 		"GeneralEnclosed":     generateGeneralEnclosed,
-		"SupportsDeclaration": func(g *Generator, n *js.Object) { parenthesized(g, n.Get("declaration")) },
+		"SupportsDeclaration": func(g *nodeWriter, n *js.Object) { parenthesized(g, n.Get("declaration")) },
 		"Ratio":               generateRatio,
 		"Scope":               generateScope,
 	} {
@@ -60,13 +60,13 @@ func init() {
 	}
 }
 
-func parenthesized(g *Generator, node any) {
+func parenthesized(g *nodeWriter, node any) {
 	g.Token(t.LeftParenthesis, "(")
 	g.Node(node)
 	g.Token(t.RightParenthesis, ")")
 }
 
-func generateAttributeSelector(g *Generator, n *js.Object) {
+func generateAttributeSelector(g *nodeWriter, n *js.Object) {
 	g.Token(t.Delim, "[")
 	g.Node(n.Get("name"))
 	if v, ok := n.Lookup("matcher"); !ok || v != nil {
@@ -79,7 +79,7 @@ func generateAttributeSelector(g *Generator, n *js.Object) {
 	g.Token(t.Delim, "]")
 }
 
-func generateNth(g *Generator, n *js.Object) {
+func generateNth(g *nodeWriter, n *js.Object) {
 	g.Node(n.Get("nth"))
 	if v, ok := n.Lookup("selector"); !ok || v != nil {
 		g.Token(t.Ident, "of")
@@ -87,7 +87,7 @@ func generateNth(g *Generator, n *js.Object) {
 	}
 }
 
-func generateAnPlusB(g *Generator, n *js.Object) {
+func generateAnPlusB(g *nodeWriter, n *js.Object) {
 	if !js.Truthy(n.Get("a")) {
 		g.Tokenize(field(n, "b"))
 		return
@@ -112,7 +112,7 @@ func generateAnPlusB(g *Generator, n *js.Object) {
 	g.Tokenize(a + b)
 }
 
-func generateMediaQuery(g *Generator, n *js.Object) {
+func generateMediaQuery(g *nodeWriter, n *js.Object) {
 	switch {
 	case js.Truthy(n.Get("mediaType")):
 		if js.Truthy(n.Get("modifier")) {
@@ -128,7 +128,7 @@ func generateMediaQuery(g *Generator, n *js.Object) {
 	}
 }
 
-func generateCondition(g *Generator, n *js.Object) {
+func generateCondition(g *nodeWriter, n *js.Object) {
 	each(n.Get("children"), func(child any) {
 		if c, _ := child.(*js.Object); c != nil && c.Str("type") == "Condition" {
 			parenthesized(g, c)
@@ -138,7 +138,7 @@ func generateCondition(g *Generator, n *js.Object) {
 	})
 }
 
-func generateFeature(g *Generator, n *js.Object) {
+func generateFeature(g *nodeWriter, n *js.Object) {
 	g.Token(t.LeftParenthesis, "(")
 	g.Token(t.Ident, field(n, "name"))
 	if v, ok := n.Lookup("value"); !ok || v != nil {
@@ -148,7 +148,7 @@ func generateFeature(g *Generator, n *js.Object) {
 	g.Token(t.RightParenthesis, ")")
 }
 
-func generateFeatureRange(g *Generator, n *js.Object) {
+func generateFeatureRange(g *nodeWriter, n *js.Object) {
 	g.Token(t.LeftParenthesis, "(")
 	g.Node(n.Get("left"))
 	g.Tokenize(field(n, "leftComparison"))
@@ -160,7 +160,7 @@ func generateFeatureRange(g *Generator, n *js.Object) {
 	g.Token(t.RightParenthesis, ")")
 }
 
-func generateGeneralEnclosed(g *Generator, n *js.Object) {
+func generateGeneralEnclosed(g *nodeWriter, n *js.Object) {
 	if js.Truthy(n.Get("function")) {
 		g.Token(t.Function, field(n, "function")+"(")
 	} else {
@@ -170,7 +170,7 @@ func generateGeneralEnclosed(g *Generator, n *js.Object) {
 	g.Token(t.RightParenthesis, ")")
 }
 
-func generateRatio(g *Generator, n *js.Object) {
+func generateRatio(g *nodeWriter, n *js.Object) {
 	g.Node(n.Get("left"))
 	g.Token(t.Delim, "/")
 	if js.Truthy(n.Get("right")) {
@@ -181,7 +181,7 @@ func generateRatio(g *Generator, n *js.Object) {
 	}
 }
 
-func generateScope(g *Generator, n *js.Object) {
+func generateScope(g *nodeWriter, n *js.Object) {
 	if js.Truthy(n.Get("root")) {
 		parenthesized(g, n.Get("root"))
 	}

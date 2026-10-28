@@ -7,19 +7,19 @@ import (
 )
 
 // Identifier parses an identifier token.
-func (p *Parser) Identifier() *js.Object {
+func (p *parser) Identifier() *js.Object {
 	loc := p.GetLocation(p.TokenStart, p.TokenEnd)
 	return js.NewObject("type", "Identifier", "loc", loc, "name", p.Consume(t.Ident))
 }
 
 // Number parses a number token.
-func (p *Parser) Number() *js.Object {
+func (p *parser) Number() *js.Object {
 	loc := p.GetLocation(p.TokenStart, p.TokenEnd)
 	return js.NewObject("type", "Number", "loc", loc, "value", p.Consume(t.Number))
 }
 
 // Dimension parses a dimension token into its number and unit.
-func (p *Parser) Dimension() *js.Object {
+func (p *parser) Dimension() *js.Object {
 	start := p.TokenStart
 	value := p.ConsumeNumber(t.Dimension)
 	return js.NewObject("type", "Dimension", "loc", p.GetLocation(start, p.TokenStart), "value", value,
@@ -27,19 +27,19 @@ func (p *Parser) Dimension() *js.Object {
 }
 
 // Percentage parses a percentage token; the value excludes "%".
-func (p *Parser) Percentage() *js.Object {
+func (p *parser) Percentage() *js.Object {
 	loc := p.GetLocation(p.TokenStart, p.TokenEnd)
 	return js.NewObject("type", "Percentage", "loc", loc, "value", p.ConsumeNumber(t.Percentage))
 }
 
 // String parses a string token; the value is decoded.
-func (p *Parser) String() *js.Object {
+func (p *parser) String() *js.Object {
 	loc := p.GetLocation(p.TokenStart, p.TokenEnd)
 	return js.NewObject("type", "String", "loc", loc, "value", utils.StringDecode(p.Consume(t.String)))
 }
 
 // URL parses <url-token> or url( <string> ); the value is decoded.
-func (p *Parser) URL() *js.Object {
+func (p *parser) URL() *js.Object {
 	start := p.TokenStart
 	var value any = js.Undefined
 	switch p.TokenType {
@@ -63,21 +63,21 @@ func (p *Parser) URL() *js.Object {
 }
 
 // Hash parses "#name"; the value excludes "#".
-func (p *Parser) Hash() *js.Object {
+func (p *parser) Hash() *js.Object {
 	start := p.TokenStart
 	p.Eat(t.Hash)
 	return js.NewObject("type", "Hash", "loc", p.GetLocation(start, p.TokenStart), "value", p.SubstrToCursor(start+1))
 }
 
 // Operator parses one token as an operator ("/", "*", ",", ":", "+", "-").
-func (p *Parser) Operator() *js.Object {
+func (p *parser) Operator() *js.Object {
 	start := p.TokenStart
 	p.Next()
 	return js.NewObject("type", "Operator", "loc", p.GetLocation(start, p.TokenStart), "value", p.SubstrToCursor(start))
 }
 
 // Parentheses parses "( sequence )" with the given recognizer.
-func (p *Parser) Parentheses(recognizer *Recognizer) *js.Object {
+func (p *parser) Parentheses(recognizer *recognizer) *js.Object {
 	start := p.TokenStart
 	p.Eat(t.LeftParenthesis)
 	children := p.ReadSequence(recognizer)
@@ -88,7 +88,7 @@ func (p *Parser) Parentheses(recognizer *Recognizer) *js.Object {
 }
 
 // Brackets parses "[ sequence ]" with the given recognizer.
-func (p *Parser) Brackets(recognizer *Recognizer) *js.Object {
+func (p *parser) Brackets(recognizer *recognizer) *js.Object {
 	start := p.TokenStart
 	p.Eat(t.LeftSquareBracket)
 	children := p.ReadSequence(recognizer)
@@ -100,7 +100,7 @@ func (p *Parser) Brackets(recognizer *Recognizer) *js.Object {
 
 // Function parses "name( ... )": special functions of the recognizer parse their own arguments, others are read
 // with the recognizer.
-func (p *Parser) Function(recognizer *Recognizer) *js.Object {
+func (p *parser) Function(recognizer *recognizer) *js.Object {
 	start := p.TokenStart
 	name := p.ConsumeFunctionName()
 	nameLowerCase := js.ToLowerCase(name)

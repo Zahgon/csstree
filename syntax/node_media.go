@@ -6,7 +6,7 @@ import (
 )
 
 // MediaQueryList parses comma-separated media queries.
-func (p *Parser) MediaQueryList() *js.Object {
+func (p *parser) MediaQueryList() *js.Object {
 	children := p.CreateList()
 	p.SkipSC()
 	for !p.EOF {
@@ -20,7 +20,7 @@ func (p *Parser) MediaQueryList() *js.Object {
 }
 
 // MediaQuery parses "[not|only] type [and condition]" or a condition.
-func (p *Parser) MediaQuery() *js.Object {
+func (p *parser) MediaQuery() *js.Object {
 	start := p.TokenStart
 	var modifier, mediaType, condition any
 	p.SkipSC()
@@ -56,7 +56,7 @@ func (p *Parser) MediaQuery() *js.Object {
 		"mediaType", mediaType, "condition", condition)
 }
 
-func (p *Parser) featureOrRange(kind string) *js.Object {
+func (p *parser) featureOrRange(kind string) *js.Object {
 	if p.LookupTypeNonSC(1) == t.Ident {
 		switch p.LookupTypeNonSC(2) {
 		case t.Colon, t.RightParenthesis, t.EOF:
@@ -66,7 +66,7 @@ func (p *Parser) featureOrRange(kind string) *js.Object {
 	return p.FeatureRange(kind)
 }
 
-func (p *Parser) conditionParentheses(kind string) *js.Object {
+func (p *parser) conditionParentheses(kind string) *js.Object {
 	if kind == "supports" {
 		return p.SupportsDeclaration()
 	}
@@ -74,7 +74,7 @@ func (p *Parser) conditionParentheses(kind string) *js.Object {
 }
 
 // Condition parses a media, container or supports condition of the given kind.
-func (p *Parser) Condition(kind string) *js.Object {
+func (p *parser) Condition(kind string) *js.Object {
 	children := p.CreateList()
 	nothing := func() *js.Object { return nil }
 scan:
@@ -113,7 +113,7 @@ scan:
 }
 
 // Feature parses "( name [: value] )".
-func (p *Parser) Feature(kind string) *js.Object {
+func (p *parser) Feature(kind string) *js.Object {
 	start := p.TokenStart
 	var value any
 	p.Eat(t.LeftParenthesis)
@@ -136,7 +136,7 @@ func (p *Parser) Feature(kind string) *js.Object {
 			value = p.Identifier()
 		case t.Function:
 			value = p.ParseWithFallback(func() *js.Object {
-				res := p.Function(ValueScope)
+				res := p.Function(valueScope)
 				p.SkipSC()
 				if p.IsDelim('/', 0) {
 					p.Error("")

@@ -6,14 +6,14 @@ import (
 )
 
 // UnicodeRange parses u+0-7F, u+1??, u+0025-00FF and the other unicode-range forms.
-func (p *Parser) UnicodeRange() *js.Object {
+func (p *parser) UnicodeRange() *js.Object {
 	start := p.TokenStart
 	p.EatIdent("u")
 	p.scanUnicodeRange()
 	return js.NewObject("type", "UnicodeRange", "loc", p.GetLocation(start, p.TokenStart), "value", p.SubstrToCursor(start))
 }
 
-func (p *Parser) eatHexSequence(offset int, allowDash bool) int {
+func (p *parser) eatHexSequence(offset int, allowDash bool) int {
 	length := 0
 	for pos := p.TokenStart + offset; pos < p.TokenEnd; pos++ {
 		code := p.CharCodeAt(pos)
@@ -44,7 +44,7 @@ func (p *Parser) eatHexSequence(offset int, allowDash bool) int {
 	return length
 }
 
-func (p *Parser) eatQuestionMarkSequence(maxCount int) {
+func (p *parser) eatQuestionMarkSequence(maxCount int) {
 	count := 0
 	for p.IsDelim('?', 0) {
 		count++
@@ -55,7 +55,7 @@ func (p *Parser) eatQuestionMarkSequence(maxCount int) {
 	}
 }
 
-func (p *Parser) unicodeRangeStartsWith(code int) {
+func (p *parser) unicodeRangeStartsWith(code int) {
 	if p.CharCodeAt(p.TokenStart) != code {
 		if code == '+' {
 			p.Error("Plus sign is expected")
@@ -64,7 +64,7 @@ func (p *Parser) unicodeRangeStartsWith(code int) {
 	}
 }
 
-func (p *Parser) scanUnicodeRange() {
+func (p *parser) scanUnicodeRange() {
 	switch p.TokenType {
 	case t.Number:
 		hexLength := p.eatHexSequence(1, true)
@@ -98,7 +98,7 @@ func (p *Parser) scanUnicodeRange() {
 }
 
 // SelectorList parses comma-separated selectors.
-func (p *Parser) SelectorList() *js.Object {
+func (p *parser) SelectorList() *js.Object {
 	children := p.CreateList()
 	for !p.EOF {
 		children.Push(p.Selector())
@@ -112,15 +112,15 @@ func (p *Parser) SelectorList() *js.Object {
 }
 
 // Selector parses one complex selector.
-func (p *Parser) Selector() *js.Object {
-	children := p.ReadSequence(SelectorScope)
+func (p *parser) Selector() *js.Object {
+	children := p.ReadSequence(selectorScope)
 	if children.First() == nil {
 		p.Error("Selector is expected")
 	}
 	return js.NewObject("type", "Selector", "loc", p.GetLocationFromList(children), "children", children)
 }
 
-func (p *Parser) eatIdentifierOrAsterisk() {
+func (p *parser) eatIdentifierOrAsterisk() {
 	if p.TokenType != t.Ident && !p.IsDelim('*', 0) {
 		p.Error("Identifier or asterisk is expected")
 	}
@@ -128,7 +128,7 @@ func (p *Parser) eatIdentifierOrAsterisk() {
 }
 
 // TypeSelector parses a type or universal selector with an optional namespace prefix.
-func (p *Parser) TypeSelector() *js.Object {
+func (p *parser) TypeSelector() *js.Object {
 	start := p.TokenStart
 	if p.IsDelim('|', 0) {
 		p.Next()
@@ -144,21 +144,21 @@ func (p *Parser) TypeSelector() *js.Object {
 }
 
 // IdSelector parses "#name".
-func (p *Parser) IdSelector() *js.Object {
+func (p *parser) IdSelector() *js.Object {
 	start := p.TokenStart
 	p.Eat(t.Hash)
 	return js.NewObject("type", "IdSelector", "loc", p.GetLocation(start, p.TokenStart), "name", p.SubstrToCursor(start+1))
 }
 
 // ClassSelector parses ".name".
-func (p *Parser) ClassSelector() *js.Object {
+func (p *parser) ClassSelector() *js.Object {
 	p.EatDelim('.')
 	loc := p.GetLocation(p.TokenStart-1, p.TokenEnd)
 	return js.NewObject("type", "ClassSelector", "loc", loc, "name", p.Consume(t.Ident))
 }
 
 // Combinator parses ">", "+", "~" or "/deep/".
-func (p *Parser) Combinator() *js.Object {
+func (p *parser) Combinator() *js.Object {
 	start := p.TokenStart
 	var name any = js.Undefined
 	switch p.TokenType {
@@ -181,7 +181,7 @@ func (p *Parser) Combinator() *js.Object {
 }
 
 // NestingSelector parses "&".
-func (p *Parser) NestingSelector() *js.Object {
+func (p *parser) NestingSelector() *js.Object {
 	start := p.TokenStart
 	p.EatDelim('&')
 	return js.NewObject("type", "NestingSelector", "loc", p.GetLocation(start, p.TokenStart))

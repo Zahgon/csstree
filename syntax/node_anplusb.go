@@ -5,7 +5,7 @@ import (
 	t "github.com/csstree/csstree/tokenizer"
 )
 
-func (p *Parser) checkInteger(offset int, disallowSign bool) {
+func (p *parser) checkInteger(offset int, disallowSign bool) {
 	pos := p.TokenStart + offset
 	code := p.CharCodeAt(pos)
 	if code == '+' || code == '-' {
@@ -21,7 +21,7 @@ func (p *Parser) checkInteger(offset int, disallowSign bool) {
 	}
 }
 
-func (p *Parser) expectCharCode(offset, code int) {
+func (p *parser) expectCharCode(offset, code int) {
 	if !p.CmpChar(p.TokenStart+offset, code) {
 		message := ""
 		switch code {
@@ -35,7 +35,7 @@ func (p *Parser) expectCharCode(offset, code int) {
 }
 
 // consumeB reads the b part after "an": an optional sign token, white space and an integer; nil when absent.
-func (p *Parser) consumeB() any {
+func (p *parser) consumeB() any {
 	offset := 0
 	sign := 0
 	typ := p.TokenType
@@ -81,7 +81,7 @@ func (p *Parser) consumeB() any {
 }
 
 // AnPlusB parses the an+b microsyntax.
-func (p *Parser) AnPlusB() *js.Object {
+func (p *parser) AnPlusB() *js.Object {
 	start := p.TokenStart
 	var a, b any
 	switch {

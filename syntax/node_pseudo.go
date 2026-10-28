@@ -6,7 +6,7 @@ import (
 	t "github.com/csstree/csstree/tokenizer"
 )
 
-func (p *Parser) attributeName() *js.Object {
+func (p *parser) attributeName() *js.Object {
 	if p.EOF {
 		p.Error("Unexpected end of input")
 	}
@@ -31,7 +31,7 @@ func (p *Parser) attributeName() *js.Object {
 	return js.NewObject("type", "Identifier", "loc", p.GetLocation(start, p.TokenStart), "name", p.SubstrToCursor(start))
 }
 
-func (p *Parser) attributeOperator() string {
+func (p *parser) attributeOperator() string {
 	start := p.TokenStart
 	code := p.CharCodeAt(start)
 	if code != '=' && code != '~' && code != '^' && code != '$' && code != '*' && code != '|' {
@@ -48,7 +48,7 @@ func (p *Parser) attributeOperator() string {
 }
 
 // AttributeSelector parses "[name]", "[name op value flags]" with namespace prefixes.
-func (p *Parser) AttributeSelector() *js.Object {
+func (p *parser) AttributeSelector() *js.Object {
 	start := p.TokenStart
 	var matcher, value, flags any
 	p.Eat(t.LeftSquareBracket)
@@ -76,14 +76,14 @@ func (p *Parser) AttributeSelector() *js.Object {
 		"matcher", matcher, "value", value, "flags", flags)
 }
 
-var pseudoHandlers map[string]func(p *Parser) *ast.List
+var pseudoHandlers map[string]func(p *parser) *ast.List
 
 func init() {
-	selectorList := func(p *Parser) *ast.List { return p.CreateSingleNodeList(p.SelectorList()) }
-	selector := func(p *Parser) *ast.List { return p.CreateSingleNodeList(p.Selector()) }
-	nth := func(p *Parser) *ast.List { return p.CreateSingleNodeList(p.Nth()) }
-	pseudoHandlers = map[string]func(p *Parser) *ast.List{
-		"dir":              func(p *Parser) *ast.List { return p.CreateSingleNodeList(p.Identifier()) },
+	selectorList := func(p *parser) *ast.List { return p.CreateSingleNodeList(p.SelectorList()) }
+	selector := func(p *parser) *ast.List { return p.CreateSingleNodeList(p.Selector()) }
+	nth := func(p *parser) *ast.List { return p.CreateSingleNodeList(p.Nth()) }
+	pseudoHandlers = map[string]func(p *parser) *ast.List{
+		"dir":              func(p *parser) *ast.List { return p.CreateSingleNodeList(p.Identifier()) },
 		"has":              selectorList,
 		"lang":             languageRangeList,
 		"matches":          selectorList,
@@ -102,7 +102,7 @@ func init() {
 	}
 }
 
-func languageRangeList(p *Parser) *ast.List {
+func languageRangeList(p *parser) *ast.List {
 	children := p.CreateList()
 	p.SkipSC()
 loop:
@@ -124,7 +124,7 @@ loop:
 	return children
 }
 
-func (p *Parser) pseudoSelector(typ string, colons int) *js.Object {
+func (p *parser) pseudoSelector(typ string, colons int) *js.Object {
 	start := p.TokenStart
 	var children any
 	var name string
@@ -153,17 +153,17 @@ func (p *Parser) pseudoSelector(typ string, colons int) *js.Object {
 }
 
 // PseudoClassSelector parses ":name" or ":name( ... )".
-func (p *Parser) PseudoClassSelector() *js.Object {
+func (p *parser) PseudoClassSelector() *js.Object {
 	return p.pseudoSelector("PseudoClassSelector", 1)
 }
 
 // PseudoElementSelector parses "::name" or "::name( ... )".
-func (p *Parser) PseudoElementSelector() *js.Object {
+func (p *parser) PseudoElementSelector() *js.Object {
 	return p.pseudoSelector("PseudoElementSelector", 2)
 }
 
 // Nth parses the argument of :nth-*(): an+b, odd or even, with an optional "of <selector-list>".
-func (p *Parser) Nth() *js.Object {
+func (p *parser) Nth() *js.Object {
 	p.SkipSC()
 	start := p.TokenStart
 	var selector any
