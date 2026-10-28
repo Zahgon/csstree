@@ -6,7 +6,10 @@
 // three-byte sequence), so every JavaScript string, including one cut through a surrogate pair, has a Go form.
 package js
 
-import "strconv"
+import (
+	"strconv"
+	"strings"
+)
 
 // Undefined is the JavaScript undefined value when it has to be stored in an Object or an array. JSON output
 // skips object properties holding it and writes it as null inside arrays.
@@ -188,4 +191,34 @@ func arrayIndexLess(a, b string) bool {
 		return len(a) < len(b)
 	}
 	return a < b
+}
+
+// ToString is String(value) for the values an Object holds.
+func ToString(v any) string {
+	switch x := v.(type) {
+	case nil:
+		return "null"
+	case undefinedValue:
+		return "undefined"
+	case bool:
+		if x {
+			return "true"
+		}
+		return "false"
+	case float64:
+		return NumberToString(x)
+	case int:
+		return strconv.Itoa(x)
+	case string:
+		return x
+	case []any:
+		parts := make([]string, len(x))
+		for i, e := range x {
+			if e != nil && e != Undefined {
+				parts[i] = ToString(e)
+			}
+		}
+		return strings.Join(parts, ",")
+	}
+	return "[object Object]"
 }
