@@ -1,6 +1,6 @@
 # AST format
 
-CSSTree's AST consists of nodes (leaves). Each node is an object with a set of properties that depends on node's type. Nodes can refer to other nodes and contain a list of nested nodes.
+CSSTree's AST consists of nodes (leaves). Each node is an object (a `*js.Object` in Go, an ordered set of properties that serialises to the JSON shown below) with a set of properties that depends on node's type. Nodes can refer to other nodes and contain a list of nested nodes.
 
 Interactively explore the AST with [AST Explorer](https://astexplorer.net/#/gist/244e2fb4da940df52bf0f4b94277db44/e79aff44611020b22cfd9708f3a99ce09b7d67a8).
 
@@ -76,7 +76,7 @@ body {
 
 An AST for this CSS might look like:
 
-```js
+```json5
 {
     type: 'StyleSheet',
     loc: null,
@@ -129,7 +129,7 @@ An AST for this CSS might look like:
 }
 ```
 
-> NOTE: The example uses arrays for the values of the property `children`. In fact, the values of this property are instances of the [`List`](List.md) class.
+> NOTE: The example uses arrays for the values of the property `children`. In fact, the values of this property are `*ast.List` values (see [`List`](list.md)), which serialise as arrays.
 
 An AST structure (i.e. details level, include positions or not) is depend on options passed to parser. See [Parsing CSS into AST](parsing.md) for details.
 
@@ -149,7 +149,7 @@ Type: `Object` or `null`
 
 Information about the position in the source string that corresponds to the node. It has the following structure:
 
-```js
+```json5
 {
     source: String,
     start: {
@@ -165,7 +165,7 @@ Information about the position in the source string that corresponds to the node
 }
 ```
 
-The `source` property contains value of `options.filename` if passed to `csstree.parse()`, otherwise `"<unknown>"`.
+The `source` property contains value of `options.filename` if passed in `syntax.ParseOptions` to `csstree.Parse()`, otherwise `"<unknown>"`.
 
 The `offset` number is zero-based, indicates the index in a source string passed to the parser.
 

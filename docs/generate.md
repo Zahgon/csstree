@@ -1,76 +1,18 @@
-# Serialization AST to CSS
+# Translate AST to string
 
-## generate(ast[, options])
-
-Generates a CSS string for given AST.
-
-```js
-// generate with default settings
-csstree.generate(ast);
-
-// generate with options
-csstree.generate(ast, {
-    sourceMap: true
-});
+```go
+css, err := csstree.Generate(ast, generator.Options{})
+css, sourceMap, err := csstree.GenerateWithSourceMap(ast, generator.Options{})
 ```
 
-Options (optional):
+`generator.Options`:
 
-<!-- MarkdownTOC -->
+- `Mode`: `"safe"` (default) or `"spec"`. Both insert white space between tokens where it is needed to keep them
+  apart; `safe` also separates pairs some browsers misread.
 
-- [sourceMap](#sourcemap)
-- [decorator](#decorator)
-- [mode](#mode)
+`GenerateWithSourceMap` also returns a Source Map v3 object (`version`, `sources`, `names`, `mappings`) mapping the
+generated position of every at-rule, selector and declaration back to its `loc`; parse with `Positions: true` to
+get one. An unknown node type fails with `Unknown node type: <type>`.
 
-<!-- /MarkdownTOC -->
-
-### sourceMap
-
-Type: `boolean`  
-Default: `false`
-
-Generates a source map (nodes should contain positions in `loc` property). Note, that an object instead of string is returned in that case.
-
-```js
-import { parse, generate } from 'css-tree';
-
-const ast = parse('.test { color: red }', {
-    filename: 'my.css',
-    positions: true
-});
-
-const result = generate(ast, { sourceMap: true });
-// { css: '.test{color:red}', map: SourceMapGenerator {} }
-```
-
-### decorator
-
-Type: `function`  
-Default: none
-
-A function that returns handlers used by a generator. TBD
-
-### mode
-
-Type: `"spec"` or `"safe"`  
-Default: `"safe"`
-
-CSS Syntax Module defines [rules for CSS serialization](https://www.w3.org/TR/css-syntax-3/#serialization) that it must "round-trip" with parsing. The generator follows these rules and determines itself when to output the space to avoid unintended CSS tokens combining. However, some older browsers fail to parse the resulting CSS because they didn't follow the spec in some cases. For this reason, the generator supports two modes:
-
-- `safe` (by default) which adds an extra space in some edge cases;
-- `spec` which completely follows the spec.
-
-```js
-import { parse, generate } from 'css-tree';
-
-const ast = parse('a { border: calc(1px) solid #ff0000 }');
-
-// safe mode is by default
-// the same as console.log(generate(ast, { mode: 'safe' }));
-console.log(generate(ast));
-// a{border:calc(1px) solid#ff0000}
-
-// spec mode
-console.log(generate(ast, { mode: 'spec' }));
-// a{border:calc(1px)solid#ff0000}
-```
+`generator.Tokens` returns the chunks a tree generates with the node each chunk belongs to (the lexer matches tree
+values this way).

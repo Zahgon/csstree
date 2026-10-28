@@ -1,9 +1,9 @@
-# API documentation
+# Documentation
 
 - [AST format](ast.md)
 - [Parsing CSS → AST](parsing.md)
 - [Serialization AST → CSS](generate.md)
 - [AST traversal](traversal.md)
-- [Util functions](utils.md)
-- [List class](list.md)
-- [Working with definition syntax](definition-syntax.md)
+- [Utils](utils.md) and [List](list.md)
+- [Value Definition Syntax and the lexer](definition-syntax.md)
+- [Command line](command-line.md)

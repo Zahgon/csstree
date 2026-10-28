@@ -1,0 +1,837 @@
+[
+[
+"string > decode",
+"",
+""
+],
+[
+"string > decode",
+"\"",
+""
+],
+[
+"string > decode",
+"'",
+""
+],
+[
+"string > decode",
+"\"\"",
+""
+],
+[
+"string > decode",
+"''",
+""
+],
+[
+"string > decode",
+"\"'",
+"'"
+],
+[
+"string > decode",
+"'\"",
+"\""
+],
+[
+"string > decode",
+"\"\\\"\"",
+"\""
+],
+[
+"string > decode",
+"\"'\"",
+"'"
+],
+[
+"string > decode",
+"\"\\\"",
+"\""
+],
+[
+"string > decode",
+"'\\'",
+"'"
+],
+[
+"string > decode",
+"\"\\",
+""
+],
+[
+"string > decode",
+"'\\",
+""
+],
+[
+"string > decode",
+"\"a\\\nb\"",
+"ab"
+],
+[
+"string > decode",
+"\"a\\\rb\"",
+"ab"
+],
+[
+"string > decode",
+"\"a\\\fb\"",
+"ab"
+],
+[
+"string > decode",
+"\"\\21\"",
+"!"
+],
+[
+"string > decode",
+"\"\\021\"",
+"!"
+],
+[
+"string > decode",
+"\"\\0021\"",
+"!"
+],
+[
+"string > decode",
+"\"\\00021\"",
+"!"
+],
+[
+"string > decode",
+"\"\\000021\"",
+"!"
+],
+[
+"string > decode",
+"\"\\0000211\"",
+"!1"
+],
+[
+"string > decode",
+"\"\\000021 1\"",
+"!1"
+],
+[
+"string > decode",
+"\"\\000021\t1\"",
+"!1"
+],
+[
+"string > decode",
+"\"\\0\"",
+"\ufffd"
+],
+[
+"string > decode",
+"\"\\0x\"",
+"\ufffdx"
+],
+[
+"string > decode",
+"\"\\abcdefa\"",
+"\ufffda"
+],
+[
+"string > decode",
+"\"\\def0\"",
+"\ufffd"
+],
+[
+"string > decode",
+"\"\\00abcdef\"",
+"\uabcdef"
+],
+[
+"string > decode",
+"\"\\abcdef1\"",
+"\ufffd1"
+],
+[
+"string > decode",
+"\"\\a\\d\\c\\9\"",
+"\n\r\f\t"
+],
+[
+"string > decode",
+"\"\\(\\)\\\\\"",
+"()\\"
+],
+[
+"string > decode",
+"\"\\\r\\\n\\\r\n\"",
+""
+],
+[
+"string > decode",
+"\\31  b",
+"1 b"
+],
+[
+"string > encode",
+"",
+"\"\""
+],
+[
+"string > encode",
+"\"",
+"\"\\\"\""
+],
+[
+"string > encode",
+"'",
+"\"'\""
+],
+[
+"string > encode",
+"a\nb",
+"\"a\\a b\""
+],
+[
+"string > encode",
+"a\nz",
+"\"a\\az\""
+],
+[
+"string > encode",
+"a\rb",
+"\"a\\d b\""
+],
+[
+"string > encode",
+"a\fb",
+"\"a\\c b\""
+],
+[
+"string > encode",
+"a\tb",
+"\"a\\9 b\""
+],
+[
+"string > encode",
+"a\nbc\n\"b\tx",
+"\"a\\a bc\\a\\\"b\\9x\""
+],
+[
+"string > encode",
+"a\\26b",
+"\"a\\\\26b\""
+],
+[
+"string > encode",
+"a&b",
+"\"a&b\""
+],
+[
+"string > encode",
+"a&z",
+"\"a&z\""
+],
+[
+"string > encode",
+"\n b",
+"\"\\a  b\""
+],
+[
+"url > decode",
+"url(",
+""
+],
+[
+"url > decode",
+"url(foo",
+"foo"
+],
+[
+"url > decode",
+"url(foo)",
+"foo"
+],
+[
+"url > decode",
+"url(  foo  )",
+"foo"
+],
+[
+"url > decode",
+"url(  1\\ \\(2\\).jpg  )",
+"1 (2).jpg"
+],
+[
+"url > decode",
+"url(  \\\"\\'\\(\\)\\ \\\\ )",
+"\"'() \\"
+],
+[
+"url > decode",
+"url(  a\\\r\\\n\\\r\nb  )",
+"ab"
+],
+[
+"url > decode",
+"url(\\21)",
+"!"
+],
+[
+"url > decode",
+"url(\\021)",
+"!"
+],
+[
+"url > decode",
+"url(\\0021)",
+"!"
+],
+[
+"url > decode",
+"url(\\00021)",
+"!"
+],
+[
+"url > decode",
+"url(\\000021)",
+"!"
+],
+[
+"url > decode",
+"url(\\0000211)",
+"!1"
+],
+[
+"url > decode",
+"url(\\000021 1)",
+"!1"
+],
+[
+"url > decode",
+"url(\\000021\t1)",
+"!1"
+],
+[
+"url > decode",
+"url(\\0)",
+"\ufffd"
+],
+[
+"url > decode",
+"url(\\0x)",
+"\ufffdx"
+],
+[
+"url > decode",
+"url(\\abcdefa)",
+"\ufffda"
+],
+[
+"url > decode",
+"url(\\def0)",
+"\ufffd"
+],
+[
+"url > decode",
+"url(\\00abcdef)",
+"\uabcdef"
+],
+[
+"url > decode",
+"url(\\abcdef1)",
+"\ufffd1"
+],
+[
+"url > decode",
+"url(\\)",
+")"
+],
+[
+"url > decode",
+"url(\\",
+""
+],
+[
+"url > encode",
+"",
+"url()"
+],
+[
+"url > encode",
+"\"",
+"url(\\\")"
+],
+[
+"url > encode",
+"'",
+"url(\\')"
+],
+[
+"url > encode",
+"a\nb",
+"url(a\\a b)"
+],
+[
+"url > encode",
+"a\nz",
+"url(a\\az)"
+],
+[
+"url > encode",
+"a\rb",
+"url(a\\d b)"
+],
+[
+"url > encode",
+"a\fb",
+"url(a\\c b)"
+],
+[
+"url > encode",
+"a\tb",
+"url(a\\9 b)"
+],
+[
+"url > encode",
+"a\nbc\n\"b\tx",
+"url(a\\a bc\\a\\\"b\\9x)"
+],
+[
+"url > encode",
+"a\\26b",
+"url(a\\\\26b)"
+],
+[
+"url > encode",
+"1 (2).jpg",
+"url(1\\ \\(2\\).jpg)"
+],
+[
+"url > encode",
+"\"'() \\",
+"url(\\\"\\'\\(\\)\\ \\\\)"
+],
+[
+"url > encode",
+"\b",
+"url(\\8)"
+],
+[
+"url > encode",
+"1 b",
+"url(1\\ b)"
+],
+[
+"url > encode",
+"1\n b",
+"url(1\\a\\ b)"
+],
+[
+"ident > decode",
+"",
+""
+],
+[
+"ident > decode",
+"foo",
+"foo"
+],
+[
+"ident > decode",
+"a\\\r\\\n\\\r\nb",
+"ab"
+],
+[
+"ident > decode",
+"\\21",
+"!"
+],
+[
+"ident > decode",
+"\\021",
+"!"
+],
+[
+"ident > decode",
+"\\0021",
+"!"
+],
+[
+"ident > decode",
+"\\00021",
+"!"
+],
+[
+"ident > decode",
+"\\000021",
+"!"
+],
+[
+"ident > decode",
+"\\0000211",
+"!1"
+],
+[
+"ident > decode",
+"\\000021 1",
+"!1"
+],
+[
+"ident > decode",
+"\\000021\t1",
+"!1"
+],
+[
+"ident > decode",
+"\\0",
+"\ufffd"
+],
+[
+"ident > decode",
+"\\0x",
+"\ufffdx"
+],
+[
+"ident > decode",
+"\\abcdefa",
+"\ufffda"
+],
+[
+"ident > decode",
+"\\def0",
+"\ufffd"
+],
+[
+"ident > decode",
+"\\00abcdef",
+"\uabcdef"
+],
+[
+"ident > decode",
+"\\abcdef1",
+"\ufffd1"
+],
+[
+"ident > decode",
+"\\",
+""
+],
+[
+"ident > decode",
+"\\31 \\ b",
+"1 b"
+],
+[
+"ident > decode",
+"\\31 \\ x",
+"1 x"
+],
+[
+"ident > decode",
+"\\31 b",
+"1b"
+],
+[
+"ident > decode",
+"\\31 x",
+"1x"
+],
+[
+"ident > decode",
+"\\31 ",
+"1"
+],
+[
+"ident > encode",
+"1",
+"\\31 "
+],
+[
+"ident > encode",
+"",
+""
+],
+[
+"ident > encode",
+"\u0000",
+"\ufffd"
+],
+[
+"ident > encode",
+"a\u0000",
+"a\ufffd"
+],
+[
+"ident > encode",
+"\u0000b",
+"\ufffdb"
+],
+[
+"ident > encode",
+"a\u0000b",
+"a\ufffdb"
+],
+[
+"ident > encode",
+"\ufffd",
+"\ufffd"
+],
+[
+"ident > encode",
+"a\ufffd",
+"a\ufffd"
+],
+[
+"ident > encode",
+"\ufffdb",
+"\ufffdb"
+],
+[
+"ident > encode",
+"a\ufffdb",
+"a\ufffdb"
+],
+[
+"ident > encode",
+"\u0001\u0002\u001e\u001f",
+"\\1 \\2 \\1e \\1f "
+],
+[
+"ident > encode",
+"0a",
+"\\30 a"
+],
+[
+"ident > encode",
+"1a",
+"\\31 a"
+],
+[
+"ident > encode",
+"2a",
+"\\32 a"
+],
+[
+"ident > encode",
+"3a",
+"\\33 a"
+],
+[
+"ident > encode",
+"4a",
+"\\34 a"
+],
+[
+"ident > encode",
+"5a",
+"\\35 a"
+],
+[
+"ident > encode",
+"6a",
+"\\36 a"
+],
+[
+"ident > encode",
+"7a",
+"\\37 a"
+],
+[
+"ident > encode",
+"8a",
+"\\38 a"
+],
+[
+"ident > encode",
+"9a",
+"\\39 a"
+],
+[
+"ident > encode",
+"a0b",
+"a0b"
+],
+[
+"ident > encode",
+"a1b",
+"a1b"
+],
+[
+"ident > encode",
+"a2b",
+"a2b"
+],
+[
+"ident > encode",
+"a3b",
+"a3b"
+],
+[
+"ident > encode",
+"a4b",
+"a4b"
+],
+[
+"ident > encode",
+"a5b",
+"a5b"
+],
+[
+"ident > encode",
+"a6b",
+"a6b"
+],
+[
+"ident > encode",
+"a7b",
+"a7b"
+],
+[
+"ident > encode",
+"a8b",
+"a8b"
+],
+[
+"ident > encode",
+"a9b",
+"a9b"
+],
+[
+"ident > encode",
+"-0a",
+"-\\30 a"
+],
+[
+"ident > encode",
+"-1a",
+"-\\31 a"
+],
+[
+"ident > encode",
+"-2a",
+"-\\32 a"
+],
+[
+"ident > encode",
+"-3a",
+"-\\33 a"
+],
+[
+"ident > encode",
+"-4a",
+"-\\34 a"
+],
+[
+"ident > encode",
+"-5a",
+"-\\35 a"
+],
+[
+"ident > encode",
+"-6a",
+"-\\36 a"
+],
+[
+"ident > encode",
+"-7a",
+"-\\37 a"
+],
+[
+"ident > encode",
+"-8a",
+"-\\38 a"
+],
+[
+"ident > encode",
+"-9a",
+"-\\39 a"
+],
+[
+"ident > encode",
+"-",
+"\\-"
+],
+[
+"ident > encode",
+"-a",
+"-a"
+],
+[
+"ident > encode",
+"--",
+"--"
+],
+[
+"ident > encode",
+"--a",
+"--a"
+],
+[
+"ident > encode",
+"\u0080-_\u00a9",
+"\u0080-_\u00a9"
+],
+[
+"ident > encode",
+"\u007f\u0080\u0081\u0082\u0083\u0084\u0085\u0086\u0087\u0088\u0089\u008a\u008b\u008c\u008d\u008e\u008f\u0090\u0091\u0092\u0093\u0094\u0095\u0096\u0097\u0098\u0099\u009a\u009b\u009c\u009d\u009e\u009f",
+"\\7f \u0080\u0081\u0082\u0083\u0084\u0085\u0086\u0087\u0088\u0089\u008a\u008b\u008c\u008d\u008e\u008f\u0090\u0091\u0092\u0093\u0094\u0095\u0096\u0097\u0098\u0099\u009a\u009b\u009c\u009d\u009e\u009f"
+],
+[
+"ident > encode",
+"\u00a0\u00a1\u00a2",
+"\u00a0\u00a1\u00a2"
+],
+[
+"ident > encode",
+"a0123456789b",
+"a0123456789b"
+],
+[
+"ident > encode",
+"abcdefghijklmnopqrstuvwxyz",
+"abcdefghijklmnopqrstuvwxyz"
+],
+[
+"ident > encode",
+"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+],
+[
+"ident > encode",
+" !xy",
+"\\ \\!xy"
+],
+[
+"ident > encode",
+"\ud834\udf06",
+"\ud834\udf06"
+],
+[
+"ident > encode",
+"\udf06",
+"\udf06"
+],
+[
+"ident > encode",
+"\ud834",
+"\ud834"
+],
+[
+"ident > encode",
+"1 b",
+"\\31 \\ b"
+],
+[
+"ident > encode",
+"1 x",
+"\\31 \\ x"
+],
+[
+"ident > encode",
+"1b",
+"\\31 b"
+],
+[
+"ident > encode",
+"1x",
+"\\31 x"
+]
+]
