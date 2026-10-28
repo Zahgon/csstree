@@ -30,9 +30,9 @@ var defaultUnits = []struct {
 	{"time", []string{"s", "ms"}},
 }
 
-// descriptor is a type, property, at-rule prelude or at-rule descriptor definition; its grammar is parsed and
+// Descriptor is a type, property, at-rule prelude or at-rule descriptor definition; its grammar is parsed and
 // its match graph built on first use, like the original's lazy getters.
-type descriptor struct {
+type Descriptor struct {
 	typ, name   string
 	parent      any
 	source      any
@@ -45,8 +45,8 @@ type descriptor struct {
 	genericFunc genericFn
 }
 
-func newDescriptor(syntax any, typ, name string, parent any) *descriptor {
-	d := &descriptor{typ: typ, name: name, parent: parent, source: syntax,
+func newDescriptor(syntax any, typ, name string, parent any) *Descriptor {
+	d := &Descriptor{typ: typ, name: name, parent: parent, source: syntax,
 		ref: js.NewObject("type", typ, "name", name)}
 	switch s := syntax.(type) {
 	case genericFn:
@@ -62,9 +62,41 @@ func newDescriptor(syntax any, typ, name string, parent any) *descriptor {
 	return d
 }
 
+// Type returns the kind of definition: Type, Property, AtrulePrelude or AtruleDescriptor.
+func (d *Descriptor) Type() string { return d.typ }
+
+// Name returns the definition's name.
+func (d *Descriptor) Name() string { return d.name }
+
+// Parent returns the name of the at-rule an at-rule descriptor belongs to, and nil for other definitions.
+func (d *Descriptor) Parent() any { return d.parent }
+
+// Serializable reports whether the definition was given as grammar text or as a parsed grammar rather than as a
+// generic matcher, like the original's serializable flag.
+func (d *Descriptor) Serializable() bool {
+	switch s := d.source.(type) {
+	case string:
+		return true
+	case *js.Object:
+		if s == nil {
+			return false
+		}
+		_, ok := s.Get("type").(string)
+		return ok
+	}
+	return false
+}
+
+// Syntax returns the parsed grammar, parsing grammar text on first use; it is nil for generic types. Grammar text
+// that does not parse returns its syntax error.
+func (d *Descriptor) Syntax() (syntax *js.Object, err error) {
+	defer recoverError(&err)
+	return d.grammar(), nil
+}
+
 // grammar returns the parsed grammar (nil for generic types); a grammar that does not parse raises its error
 // on every use, as the original's getter does.
-func (d *descriptor) grammar() *js.Object {
+func (d *Descriptor) grammar() *js.Object {
 	if !d.parsed {
 		tree, err := definitionsyntax.Parse(d.source.(string))
 		if err != nil {
@@ -75,7 +107,7 @@ func (d *descriptor) grammar() *js.Object {
 	return d.syntax
 }
 
-func (d *descriptor) matchGraph() *gnode {
+func (d *Descriptor) matchGraph() *gnode {
 	if d.graph == nil {
 		grammar := d.grammar()
 		if grammar == nil {
@@ -86,7 +118,7 @@ func (d *descriptor) matchGraph() *gnode {
 	return d.graph
 }
 
-func (d *descriptor) matchRefGraph() *gnode {
+func (d *Descriptor) matchRefGraph() *gnode {
 	if d.typ != "Property" || d.genericFunc != nil {
 		return nil
 	}
@@ -114,20 +146,42 @@ type dict struct{ o *js.Object }
 
 func newDict() dict { return dict{js.NewObject()} }
 
-func (m dict) set(name string, d *descriptor) { m.o.Set(name, d) }
+func (m dict) set(name string, d *Descriptor) { m.o.Set(name, d) }
 
-func (m dict) lookup(name string) *descriptor {
-	d, _ := m.o.Get(name).(*descriptor)
+func (m dict) lookup(name string) *Descriptor {
+	d, _ := m.o.Get(name).(*Descriptor)
 	return d
 }
 
 func (m dict) keys() []string { return m.o.Keys() }
 
-// atrule is an at-rule definition: an optional prelude descriptor and optional descriptors.
-type atrule struct {
+// Atrule is an at-rule definition: an optional prelude descriptor and optional descriptors.
+type Atrule struct {
 	name        string
-	prelude     *descriptor
+	prelude     *Descriptor
 	descriptors *dict
+}
+
+// Name returns the at-rule's name.
+func (a *Atrule) Name() string { return a.name }
+
+// Prelude returns the definition of the at-rule's prelude, or nil when it has none.
+func (a *Atrule) Prelude() *Descriptor { return a.prelude }
+
+// Descriptor returns the definition of one of the at-rule's descriptors, or nil when it has no such descriptor.
+func (a *Atrule) Descriptor(name string) *Descriptor {
+	if a.descriptors == nil {
+		return nil
+	}
+	return a.descriptors.lookup(name)
+}
+
+// DescriptorNames returns the names of the at-rule's descriptors in definition order.
+func (a *Atrule) DescriptorNames() []string {
+	if a.descriptors == nil {
+		return nil
+	}
+	return a.descriptors.keys()
 }
 
 // Lexer matches values against the definitions of a syntax.
@@ -223,7 +277,7 @@ func (l *Lexer) addAtrule(name string, value any) {
 	if !js.Truthy(value) || syntax == nil {
 		return
 	}
-	entry := &atrule{name: name}
+	entry := &Atrule{name: name}
 	if p := syntax.Get("prelude"); js.Truthy(p) {
 		entry.prelude = newDescriptor(p, "AtrulePrelude", name, nil)
 	}

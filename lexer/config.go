@@ -6,7 +6,7 @@ import (
 	"github.com/csstree/csstree/js"
 )
 
-func (l *Lexer) dumpSyntax(d *descriptor, compact, syntaxAsAST bool) any {
+func (l *Lexer) dumpSyntax(d *Descriptor, compact, syntaxAsAST bool) any {
 	grammar := d.grammar()
 	if grammar == nil {
 		return nil
@@ -38,7 +38,7 @@ func (l *Lexer) Dump(syntaxAsAST, pretty bool) (result *js.Object, err error) {
 	compact := !pretty
 	atrules := js.NewObject()
 	for _, name := range l.atrules.Keys() {
-		entry := l.atrules.Get(name).(*atrule)
+		entry := l.atrules.Get(name).(*Atrule)
 		var prelude, descriptors any
 		if entry.prelude != nil {
 			prelude = l.dumpSyntax(entry.prelude, compact, syntaxAsAST)
@@ -51,6 +51,16 @@ func (l *Lexer) Dump(syntaxAsAST, pretty bool) (result *js.Object, err error) {
 	return js.NewObject("generic", l.generic, "cssWideKeywords", l.cssWideKeywords, "units", l.units,
 		"types", l.dumpMap(l.types, compact, syntaxAsAST), "properties", l.dumpMap(l.properties, compact, syntaxAsAST),
 		"atrules", atrules), nil
+}
+
+// ToString returns the compact dump as JSON text, as the original's toString does; grammar text that does not
+// parse returns its syntax error.
+func (l *Lexer) ToString() (string, error) {
+	dump, err := l.Dump(false, false)
+	if err != nil {
+		return "", err
+	}
+	return js.Stringify(dump), nil
 }
 
 // DefaultConfig returns the lexer config of the default syntax: generic types on, the CSS-wide keywords, and the

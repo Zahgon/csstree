@@ -16,12 +16,14 @@ and `atrules` (a syntax starting with `|` extends the existing one).
 
 | method | |
 |---|---|
-| `MatchProperty(name, value)`, `MatchType(name, value)`, `Match(syntax, value)` | match CSS text or an AST value |
+| `MatchProperty(name, value)`, `MatchType(name, value)`, `Match(syntax, value)` | match CSS text or an AST value; `Match` takes grammar text, a grammar AST or a `*Descriptor` |
+| `GetProperty`, `GetType`, `GetAtrule`, `GetAtrulePrelude`, `CreateDescriptor` | definitions: a `*Descriptor` (`Type`, `Name`, `Parent`, `Serializable`, `Syntax`) or an `*Atrule` (`Name`, `Prelude`, `Descriptor`, `DescriptorNames`) |
+| `GetAtruleDescriptor(atrule, name)` | always `ErrAtruleDescriptor`, the original's TypeError; read descriptors with `Atrule.Descriptor` |
 | `MatchDeclaration(node)`, `MatchAtrulePrelude(name, prelude)`, `MatchAtruleDescriptor(atrule, name, value)` | |
 | `CheckAtruleName`, `CheckAtrulePrelude`, `CheckAtruleDescriptorName`, `CheckPropertyName` | the problem, or nil |
 | `CheckStructure(ast)` | structure warnings of an AST |
 | `FindValueFragments`, `FindDeclarationValueFragments`, `FindAllFragments` | nodes matched by a type or keyword |
-| `Validate()`, `Dump(asAST, pretty)` | broken definitions; all definitions |
+| `Validate()`, `Dump(asAST, pretty)`, `ToString()` | broken definitions; all definitions; the compact dump as JSON |
 
 A `MatchResult` holds the match tree (`Matched`) or the `Error` (`*lexer.SyntaxMatchError` with the mismatch
 offset and length, `*lexer.SyntaxReferenceError`, or `*lexer.Error`), and answers `GetTrace`, `IsType`,

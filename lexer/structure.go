@@ -144,8 +144,8 @@ func (l *Lexer) Validate() (result *js.Object, err error) {
 	defer recoverError(&err)
 	var errorsList []any
 	brokenTypes, brokenProperties := &brokenMap{}, &brokenMap{}
-	var validate func(name string, broken *brokenMap, d *descriptor) bool
-	validate = func(name string, broken *brokenMap, d *descriptor) bool {
+	var validate func(name string, broken *brokenMap, d *Descriptor) bool
+	validate = func(name string, broken *brokenMap, d *Descriptor) bool {
 		if v, ok := broken.get(name); ok {
 			return v
 		}

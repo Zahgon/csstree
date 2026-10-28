@@ -8,7 +8,7 @@ import (
 	"github.com/csstree/csstree/js"
 )
 
-// Error is a plain JavaScript error the lexer returns: its name is "Error" or "SyntaxError".
+// Error is a plain JavaScript error the lexer returns: its name is "Error", "SyntaxError" or "TypeError".
 type Error struct {
 	Name    string
 	Message string

@@ -25,7 +25,7 @@ func valueHasVar(tokens []*token) bool {
 	return false
 }
 
-func (l *Lexer) matchSyntax(syntax *descriptor, value any, useCSSWideKeywords bool) *MatchResult {
+func (l *Lexer) matchSyntax(syntax *Descriptor, value any, useCSSWideKeywords bool) *MatchResult {
 	tokens, err := prepareTokens(value)
 	if err != nil {
 		panic(&matchError{err})
@@ -53,17 +53,43 @@ func guard(fn func() *MatchResult) (res *MatchResult, err error) {
 }
 
 // GetAtrule returns an at-rule definition by name; a vendor-prefixed name falls back to the unprefixed one.
-func (l *Lexer) GetAtrule(name string, fallbackBasename bool) *atrule {
+func (l *Lexer) GetAtrule(name string, fallbackBasename bool) *Atrule {
 	d := utils.Keyword(name)
-	entry, _ := l.atrules.Get(d.Name).(*atrule)
+	entry, _ := l.atrules.Get(d.Name).(*Atrule)
 	if entry == nil && d.Vendor != "" && fallbackBasename {
-		entry, _ = l.atrules.Get(d.Basename).(*atrule)
+		entry, _ = l.atrules.Get(d.Basename).(*Atrule)
 	}
 	return entry
 }
 
+// GetAtrulePrelude returns the prelude definition of an at-rule found as GetAtrule finds it, or nil when the
+// at-rule is unknown or has no prelude.
+func (l *Lexer) GetAtrulePrelude(name string, fallbackBasename bool) *Descriptor {
+	if entry := l.GetAtrule(name, fallbackBasename); entry != nil {
+		return entry.prelude
+	}
+	return nil
+}
+
+// ErrAtruleDescriptor is the TypeError the original's getAtruleDescriptor throws for every input: it calls
+// hasOwnProperty on an at-rule map created without a prototype.
+var ErrAtruleDescriptor = &Error{Name: "TypeError", Message: "this.atrules.hasOwnProperty is not a function"}
+
+// GetAtruleDescriptor returns ErrAtruleDescriptor for every at-rule and descriptor name, as the original does;
+// Atrule.Descriptor reads a descriptor's definition.
+func (l *Lexer) GetAtruleDescriptor(atruleName, name string) (*Descriptor, error) {
+	return nil, ErrAtruleDescriptor
+}
+
+// CreateDescriptor creates a definition of the given kind (Type, Property, AtrulePrelude or AtruleDescriptor)
+// from grammar text, parsed on first use, or from a parsed grammar; parent names the at-rule of an at-rule
+// descriptor. Match accepts the result.
+func (l *Lexer) CreateDescriptor(syntax any, typ, name string, parent any) *Descriptor {
+	return newDescriptor(syntax, typ, name, parent)
+}
+
 // GetProperty returns a property definition by name; a vendor-prefixed name falls back to the unprefixed one.
-func (l *Lexer) GetProperty(name string, fallbackBasename bool) *descriptor {
+func (l *Lexer) GetProperty(name string, fallbackBasename bool) *Descriptor {
 	d := utils.Property(name)
 	entry := l.properties.lookup(d.Name)
 	if entry == nil && d.Vendor != "" && fallbackBasename {
@@ -73,7 +99,7 @@ func (l *Lexer) GetProperty(name string, fallbackBasename bool) *descriptor {
 }
 
 // GetType returns a type definition by name.
-func (l *Lexer) GetType(name string) *descriptor {
+func (l *Lexer) GetType(name string) *Descriptor {
 	return l.types.lookup(name)
 }
 
@@ -192,9 +218,14 @@ func (l *Lexer) MatchType(name string, value any) (*MatchResult, error) {
 	return guard(func() *MatchResult { return l.matchSyntax(syntax, value, false) })
 }
 
-// Match matches a value against a grammar given as text or as a parsed grammar.
+// Match matches a value against a grammar given as text, as a parsed grammar or as a definition.
 func (l *Lexer) Match(syntax any, value any) (*MatchResult, error) {
 	switch s := syntax.(type) {
+	case *Descriptor:
+		if s == nil {
+			return result(nil, newReferenceError("Bad syntax", "", false), 0), nil
+		}
+		return guard(func() *MatchResult { return l.matchSyntax(s, value, false) })
 	case string:
 	case *js.Object:
 		if !js.Truthy(s.Get("type")) {
