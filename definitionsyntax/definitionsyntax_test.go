@@ -3,7 +3,7 @@ package definitionsyntax
 import (
 	"testing"
 
-	"github.com/csstree/csstree/internal/fixtures"
+	"github.com/csstree/csstree/internal/fixtureset"
 	"github.com/csstree/csstree/internal/js"
 )
 
@@ -11,7 +11,7 @@ func grammars(t *testing.T) []string {
 	t.Helper()
 	var out []string
 	for _, dir := range []string{"../fixtures/definition-syntax", "../fixtures/definition-syntax-match"} {
-		tests, err := fixtures.Load(dir)
+		tests, err := fixtureset.Load(dir)
 		if err != nil {
 			t.Fatal(err)
 		}

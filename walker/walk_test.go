@@ -7,7 +7,7 @@ import (
 
 	"github.com/csstree/csstree/ast"
 	"github.com/csstree/csstree/convertor"
-	"github.com/csstree/csstree/internal/fixtures"
+	"github.com/csstree/csstree/internal/fixtureset"
 	"github.com/csstree/csstree/internal/js"
 	"github.com/csstree/csstree/syntax"
 	"github.com/csstree/csstree/walker"
@@ -15,7 +15,7 @@ import (
 
 func fixtureASTs(t *testing.T) map[string]*js.Object {
 	t.Helper()
-	tests, err := fixtures.Load("../fixtures/ast")
+	tests, err := fixtureset.Load("../fixtures/ast")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -5,20 +5,20 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/csstree/csstree/internal/fixtures"
+	"github.com/csstree/csstree/internal/fixtureset"
 	"github.com/csstree/csstree/internal/js"
 )
 
-func loadAstFixtures(t *testing.T) []fixtures.Test {
+func loadAstFixtures(t *testing.T) []fixtureset.Test {
 	t.Helper()
-	tests, err := fixtures.Load("../fixtures/ast")
+	tests, err := fixtureset.Load("../fixtures/ast")
 	if err != nil || len(tests) == 0 {
 		t.Fatalf("reading fixtures/ast: %v (%d tests)", err, len(tests))
 	}
 	return tests
 }
 
-func withoutLoc(v any) string { return fixtures.WithoutLoc(v) }
+func withoutLoc(v any) string { return fixtureset.WithoutLoc(v) }
 
 var wrappers = map[string]func(*js.Object) *js.Object{
 	"stylesheet": func(a *js.Object) *js.Object { return js.NewObject("type", "StyleSheet", "children", []any{a}) },

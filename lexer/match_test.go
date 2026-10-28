@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/csstree/csstree/data"
-	"github.com/csstree/csstree/internal/fixtures"
+	"github.com/csstree/csstree/internal/fixtureset"
 	"github.com/csstree/csstree/internal/js"
 )
 
@@ -50,7 +50,7 @@ func fixtureLexer(t *testing.T, test *js.Object) *Lexer {
 }
 
 func TestDefinitionSyntaxMatch(t *testing.T) {
-	tests, err := fixtures.Load("../fixtures/definition-syntax-match")
+	tests, err := fixtureset.Load("../fixtures/definition-syntax-match")
 	if err != nil || len(tests) == 0 {
 		t.Fatalf("fixtures: %v", err)
 	}

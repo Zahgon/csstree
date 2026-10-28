@@ -7,13 +7,13 @@ import (
 
 	"github.com/csstree/csstree/convertor"
 	"github.com/csstree/csstree/generator"
-	"github.com/csstree/csstree/internal/fixtures"
+	"github.com/csstree/csstree/internal/fixtureset"
 	"github.com/csstree/csstree/internal/js"
 	"github.com/csstree/csstree/syntax"
 	"github.com/csstree/csstree/tokenizer"
 )
 
-func parseOptions(test fixtures.Test) syntax.ParseOptions {
+func parseOptions(test fixtureset.Test) syntax.ParseOptions {
 	opts := syntax.ParseOptions{Context: test.Scope}
 	o := test.Data.Obj("options")
 	opts.Atrule = o.Str("atrule")
@@ -27,13 +27,13 @@ func parseOptions(test fixtures.Test) syntax.ParseOptions {
 	return opts
 }
 
-func generateTests(t *testing.T) []fixtures.Test {
+func generateTests(t *testing.T) []fixtureset.Test {
 	t.Helper()
-	all, err := fixtures.Load("../fixtures/ast")
+	all, err := fixtureset.Load("../fixtures/ast")
 	if err != nil {
 		t.Fatal(err)
 	}
-	var tests []fixtures.Test
+	var tests []fixtureset.Test
 	for _, test := range all {
 		if !test.Data.Has("error") && !test.Data.Bool("skip") {
 			tests = append(tests, test)
@@ -42,7 +42,7 @@ func generateTests(t *testing.T) []fixtures.Test {
 	return tests
 }
 
-func expectedCSS(test fixtures.Test) string {
+func expectedCSS(test fixtureset.Test) string {
 	if test.Data.Has("generate") {
 		return test.Data.Str("generate")
 	}
