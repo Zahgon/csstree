@@ -1,5 +1,5 @@
-// Package fixtures reads the JSON test fixtures of the repository's fixtures folder for the package tests.
-package fixtures
+// Package fixtureset reads the JSON test fixtures of the repository's fixtures folder for the package tests.
+package fixtureset
 
 import (
 	"os"
